@@ -25,6 +25,8 @@ namespace ModConstructions
 
         public static bool HasUnlockedShelters = false;
 
+        public static bool TestRainFXInfoShown = false;
+
         public bool IsOptionInstantFinishConstructionsActive;
 
         /// <summary>
@@ -68,6 +70,19 @@ namespace ModConstructions
             if (!IsOptionInstantFinishConstructionsActive && !IsLocalOrHost && IsModConstructionsActive && Input.GetKeyDown(KeyCode.F8))
             {
                 ShowHUDBigInfo("Feature disabled in multiplayer!", "Mod Constructions Info", HUDInfoLogTextureType.Count.ToString());
+            }
+            if (RainManager.Get().IsRain())
+            {
+                if (!TestRainFXInfoShown)
+                {
+                    ShowHUDBigInfo("Beta testing feature activated when raining - check FX beneath roofs!", "Mod Constructions Info", HUDInfoLogTextureType.Count.ToString());
+                    TestRainFXInfoShown = true;
+                }
+                RainProofing();
+            }
+            else
+            {
+                TestRainFXInfoShown = false;
             }
         }
 
@@ -118,6 +133,7 @@ namespace ModConstructions
 
             GUI.Label(new Rect(30f, 70f, 300f, 20f), "Use F8 to instantly finish constructions", GUI.skin.label);
             IsOptionInstantFinishConstructionsActive = GUI.Toggle(new Rect(350f, 70f, 20f, 20f), IsOptionInstantFinishConstructionsActive, "");
+
         }
 
         public bool UseOptionF8
@@ -158,29 +174,52 @@ namespace ModConstructions
             {
                 if (!HasUnlockedConstructions)
                 {
-                    List<ItemInfo> list = itemsManager.GetAllInfosOfType(ItemType.Construction);
+                    List<ItemInfo> list = itemsManager.GetAllInfos().Values.Where(info => info.IsConstruction()).ToList();
                     foreach (ItemInfo constructionItemInfo in list)
                     {
-                        if (constructionItemInfo.m_ID != ItemID.Ayuhasca_Cauldron_Dream01_Rack_New
-                             || constructionItemInfo.m_ID != ItemID.Ayuhasca_Cauldron_Dream02_Rack_New
-                             || constructionItemInfo.m_ID != ItemID.Ayuhasca_Cauldron_Dream03_Rack_New
-                             || constructionItemInfo.m_ID != ItemID.Ayuhasca_Cauldron_Dream04_Rack_New)
-                        {
-                            itemsManager.UnlockItemInNotepad(constructionItemInfo.m_ID);
-                            itemsManager.UnlockItemInfo(constructionItemInfo.m_ID.ToString());
-                            ShowHUDInfoLog(constructionItemInfo.m_ID.ToString(), "HUD_InfoLog_NewEntry");
-                        }
+                        itemsManager.UnlockItemInNotepad(constructionItemInfo.m_ID);
+                        itemsManager.UnlockItemInfo(constructionItemInfo.m_ID.ToString());
+                        ShowHUDInfoLog(constructionItemInfo.m_ID.ToString(), "HUD_InfoLog_NewEntry");
                     }
                     HasUnlockedConstructions = true;
                 }
                 else
                 {
-                    ShowHUDBigInfo("All constructions unlocked", "Mod Constructions Info", HUDInfoLogTextureType.Count.ToString());
+                    ShowHUDBigInfo("All constructions were already unlocked", "Mod Constructions Info", HUDInfoLogTextureType.Count.ToString());
                 }
             }
             catch (Exception exc)
             {
                 ModAPI.Log.Write($"[{nameof(ModConstructions)}.{nameof(ModConstructions)}:{nameof(UnlockAllConstructions)}] throws exception: {exc.Message}");
+            }
+        }
+
+        public static void RainProofing()
+        {
+            try
+            {
+                List<Construction> roofs = Construction.s_AllRoofs;
+
+                foreach (Terrain terrain in Terrain.activeTerrains)
+                {
+                    ReliefTerrain rtp = terrain.GetComponent<ReliefTerrain>();
+                    foreach (Construction roof in roofs)
+                    {
+                        if ((roof.transform.position.x == terrain.transform.position.x)
+                          && (roof.transform.position.z == terrain.transform.position.z)
+                          && (roof.transform.position.y > terrain.transform.position.y)
+                          )
+                        {
+                            rtp.globalSettingsHolder.TERRAIN_RainIntensity = 0f;
+                            rtp.globalSettingsHolder.TERRAIN_DropletsSpeed = 0f;
+                            rtp.globalSettingsHolder.TERRAIN_RippleScale = 0f;
+                        }
+                    }
+                }
+            }
+            catch (Exception exc)
+            {
+                ModAPI.Log.Write($"[{nameof(ModConstructions)}.{nameof(ModConstructions)}:{nameof(RainProofing)}] throws exception: {exc.Message}");
             }
         }
 

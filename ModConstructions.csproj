@@ -344,6 +344,7 @@
   <ItemGroup>
     <Compile Include="Extensions\ConstructionGhostManagerExtended.cs" />
     <Compile Include="Extensions\PlayerExtended.cs" />
+    <Compile Include="Extensions\TrapExtended.cs" />
     <Compile Include="ModConstructions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
