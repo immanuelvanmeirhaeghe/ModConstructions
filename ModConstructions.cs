@@ -27,6 +27,8 @@ namespace ModConstructions
 
         public static bool TestRainFXInfoShown = false;
 
+        public bool IsTestRainFxEnabled;
+
         public bool IsOptionInstantFinishConstructionsActive;
 
         /// <summary>
@@ -67,23 +69,46 @@ namespace ModConstructions
                     EnableCursor(false);
                 }
             }
-            if (!IsOptionInstantFinishConstructionsActive && !IsLocalOrHost && IsModConstructionsActive && Input.GetKeyDown(KeyCode.F8))
+            if (!IsOptionInstantFinishConstructionsActive && IsLocalOrHost && IsModConstructionsActive && Input.GetKeyDown(KeyCode.F8))
             {
                 ShowHUDBigInfo("Feature disabled in multiplayer!", "Mod Constructions Info", HUDInfoLogTextureType.Count.ToString());
             }
+            if (IsTestRainFxEnabled && IsLocalOrHost && IsModConstructionsActive)
+            {
+                StartRain();
+            }
+            else
+            {
+                StopRain();
+            }
+            UpdateRainTest();
+            if (TestRainFXInfoShown)
+            {
+                ShowHUDBigInfo("Testing rain FX - check beneath roofs!", "ModConstructions Info", HUDInfoLogTextureType.Count.ToString());
+            }
+        }
+
+        public static void StartRain()
+        {
+            RainManager.Get().ScenarioStartRain();
+        }
+
+        private static void UpdateRainTest()
+        {
             if (RainManager.Get().IsRain())
             {
-                if (!TestRainFXInfoShown)
-                {
-                    ShowHUDBigInfo("Beta testing feature activated when raining - check FX beneath roofs!", "Mod Constructions Info", HUDInfoLogTextureType.Count.ToString());
-                    TestRainFXInfoShown = true;
-                }
                 RainProofing();
+                TestRainFXInfoShown = true;
             }
             else
             {
                 TestRainFXInfoShown = false;
             }
+        }
+
+        public static void StopRain()
+        {
+            RainManager.Get().ScenarioStopRain();
         }
 
         private void OnGUI()
@@ -134,6 +159,8 @@ namespace ModConstructions
             GUI.Label(new Rect(30f, 70f, 300f, 20f), "Use F8 to instantly finish constructions", GUI.skin.label);
             IsOptionInstantFinishConstructionsActive = GUI.Toggle(new Rect(350f, 70f, 20f, 20f), IsOptionInstantFinishConstructionsActive, "");
 
+            GUI.Label(new Rect(30f, 90f, 300f, 20f), "Test rain FX", GUI.skin.label);
+            IsTestRainFxEnabled = GUI.Toggle(new Rect(350f, 90f, 20f, 20f), IsTestRainFxEnabled, "");
         }
 
         public bool UseOptionF8
@@ -199,22 +226,16 @@ namespace ModConstructions
             try
             {
                 List<Construction> roofs = Construction.s_AllRoofs;
-
-                foreach (Terrain terrain in Terrain.activeTerrains)
+                foreach (Construction roof in roofs)
                 {
-                    ReliefTerrain rtp = terrain.GetComponent<ReliefTerrain>();
-                    foreach (Construction roof in roofs)
-                    {
-                        if ((roof.transform.position.x == terrain.transform.position.x)
-                          && (roof.transform.position.z == terrain.transform.position.z)
-                          && (roof.transform.position.y > terrain.transform.position.y)
-                          )
-                        {
-                            rtp.globalSettingsHolder.TERRAIN_RainIntensity = 0f;
-                            rtp.globalSettingsHolder.TERRAIN_DropletsSpeed = 0f;
-                            rtp.globalSettingsHolder.TERRAIN_RippleScale = 0f;
-                        }
-                    }
+                    Vector3Int roofPosition = Vector3Int.FloorToInt(roof.transform.position);
+                    ModAPI.Log.Write($"Roof location x: {roofPosition.x} y: {roofPosition.y} z: {roofPosition.z}");
+                    //RainCutter roofCutter = new RainCutter
+                    //{
+                    //    m_Type = RainCutterType.Tent
+                    //};
+                    //((RainCutterExtended)roofCutter).SetBoxCollider(roof.m_BoxCollider);
+                    //RainManager.Get().RegisterRainCutter(((RainCutterExtended)roofCutter));
                 }
             }
             catch (Exception exc)
