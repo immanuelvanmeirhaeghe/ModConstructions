@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace ModConstructions
+namespace ModConstructions.Extensions
 {
     /// <summary>
     /// Inject modding interface into game only in single player mode

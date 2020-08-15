@@ -7,7 +7,7 @@ namespace ModConstructions
     {
         protected override void Update()
         {
-                if (ModConstructions.Get().IsLocalOrHost && ModConstructions.Get().UseOptionF8  && Input.GetKeyDown(KeyCode.F8))
+                if ( (ModConstructions.Get().IsLocalOrHost || ModConstructions.Get().IsModActiveForMultiplayer) && ModConstructions.Get().UseOptionF8  && Input.GetKeyDown(KeyCode.F8))
                 {
                     foreach (ConstructionGhost m_Unfinished in m_AllGhosts.Where(
                                               m_Ghost => m_Ghost.gameObject.activeSelf

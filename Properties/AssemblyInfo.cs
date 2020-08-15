@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("ModConstructions.Properties")]
-[assembly: AssemblyDescription("ModConstructions is a mod for Green Hel, which allows a player to unlock all constructions and unlock all shelter types. It also gives the player the possibility to instantly finish any ongoing building. Press Home to activate the mod. If enabled, Press F8 to finish all constructions (only in single player mode).")]
+[assembly: AssemblyDescription("ModConstructions is a mod for Green Hel, which allows a player to unlock all constructions and unlock all shelter types. It also gives the player the possibility to instantly finish any ongoing building. Press End to activate the mod. If enabled, Press F8 to finish all constructions (only in single player mode).")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Dragon Legion")]
 [assembly: AssemblyProduct("ModConstructions.Properties")]
 [assembly: AssemblyCopyright("Copyright ©  2020")]
 [assembly: AssemblyTrademark("")]
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.0.0.1")]
-[assembly: AssemblyFileVersion("1.0.0.1")]
+[assembly: AssemblyVersion("1.0.2.0")]
+[assembly: AssemblyFileVersion("1.0.2.0")]
