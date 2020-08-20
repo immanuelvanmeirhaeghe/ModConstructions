@@ -4,7 +4,7 @@
     <EN>ModConstructions</EN>
   </Name>
   <Description>
-    <EN>ModConstructions is a mod for Green Hel, which allows a player to unlock all constructions and unlock all shelter types. It also gives the player the possibility to instantly finish any ongoing building. Press PrintScreen to activate the mod. If enabled, Press F8 to finish all constructions (only in single player mode).</EN>
+    <EN>ModConstructions is a mod for Green Hell that allows a player to unlock all constructions, shelters and beds. It also gives the player the possibility to instantly finish any ongoing constructions.</EN>
   </Description>
-  <Version>1.0.2.0</Version>
+  <Version>1.0.2.1</Version>
 </Mod>

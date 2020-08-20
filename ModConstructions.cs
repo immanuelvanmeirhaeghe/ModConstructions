@@ -6,7 +6,13 @@ using UnityEngine;
 
 namespace ModConstructions
 {
-    class ModConstructions : MonoBehaviour
+    /// <summary>
+    /// ModConstructions is a mod for Green Hell that allows a player to unlock all constructions, shelters and beds.
+    /// It also gives the player the possibility to instantly finish any ongoing constructions.
+    /// (only in single player mode - Use ModManager for multiplayer).
+    /// Enable the mod UI by pressing END.
+    /// </summary>
+    public class ModConstructions : MonoBehaviour
     {
         private static ModConstructions s_Instance;
 
@@ -18,19 +24,20 @@ namespace ModConstructions
 
         private static HUDManager hUDManager;
 
-        public bool IsModConstructionsActive = false;
+        public static List<ItemInfo> m_UnlockedConstructionsItemInfos = new List<ItemInfo>();
+        private static bool m_UnlockedConstructions;
+        public static bool HasUnlockedConstructions => m_UnlockedConstructions;
 
-        public static bool HasUnlockedConstructions = false;
-
-        public static bool HasUnlockedRestingPlaces = false;
+        public static List<ItemInfo> m_UnlockedSheltersItemInfos = new List<ItemInfo>();
+        private static bool m_UnlockedRestingPlaces;
+        public static bool HasUnlockedRestingPlaces => m_UnlockedRestingPlaces;
 
         public static bool TestRainFXInfoShown = false;
 
         //public bool IsTestRainFxEnabled;
 
-        public bool IsOptionInstantFinishConstructionsActive;
-
-        public bool IsLocalOrHost => ReplTools.AmIMaster();
+        private bool m_IsOptionInstantFinishConstructionsActive;
+        public bool UseOptionF8 => m_IsOptionInstantFinishConstructionsActive;
 
         /// <summary>
         /// ModAPI required security check to enable this mod feature for multiplayer.
@@ -40,9 +47,10 @@ namespace ModConstructions
         /// <returns>true if enabled, else false</returns>
         public bool IsModActiveForMultiplayer => FindObjectOfType(typeof(ModManager.ModManager)) != null ? ModManager.ModManager.AllowModsForMultiplayer : false;
 
+        public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
+
         public ModConstructions()
         {
-            IsModConstructionsActive = true;
             s_Instance = this;
         }
 
@@ -53,15 +61,11 @@ namespace ModConstructions
 
         private void Update()
         {
-            if ( (IsLocalOrHost || IsModActiveForMultiplayer) && Input.GetKeyDown(KeyCode.End))
+            if (Input.GetKeyDown(KeyCode.End))
             {
                 if (!showUI)
                 {
-                    hUDManager = HUDManager.Get();
-
-                    itemsManager = ItemsManager.Get();
-
-                    player = Player.Get();
+                    InitData();
 
                     EnableCursor(true);
                 }
@@ -130,7 +134,7 @@ namespace ModConstructions
                 EnableCursor(false);
             }
 
-            GUI.Label(new Rect(520f, 540f, 200f, 20f), "Click to unlock all shelters and beds", GUI.skin.label);
+            GUI.Label(new Rect(520f, 540f, 200f, 20f), "Click to unlock shelters-beds", GUI.skin.label);
             if (GUI.Button(new Rect(770f, 540f, 150f, 20f), "Unlock resting places", GUI.skin.button))
             {
                 OnClickUnlockRestingPlacesButton();
@@ -138,21 +142,35 @@ namespace ModConstructions
                 EnableCursor(false);
             }
 
-            GUI.Label(new Rect(520f, 560f, 200f, 20f), "Use F8 to instantly finish constructions", GUI.skin.label);
-            IsOptionInstantFinishConstructionsActive = GUI.Toggle(new Rect(770f, 560f, 20f, 20f), IsOptionInstantFinishConstructionsActive, "");
+            //GUI.Label(new Rect(520f, 560f, 200f, 20f), "Click to get a military bed", GUI.skin.label);
+            //if (GUI.Button(new Rect(770f, 560f, 150f, 20f), "Get military bed", GUI.skin.button))
+            //{
+            //    OnClickGetMilitaryBedButton();
+            //    showUI = false;
+            //    EnableCursor(false);
+            //}
+            //GUI.Label(new Rect(520f, 580f, 200f, 20f), "Test rain FX", GUI.skin.label);
+            //IsTestRainFxEnabled = GUI.Toggle(new Rect(770f, 580f, 20f, 20f), IsTestRainFxEnabled, "");
 
-            GUI.Label(new Rect(520f, 580f, 200f, 20f), "Click to get a military bed", GUI.skin.label);
-            if (GUI.Button(new Rect(770f, 580f, 150f, 20f), "Get military bed", GUI.skin.button))
-            {
-                OnClickGetMilitaryBedButton();
-                showUI = false;
-                EnableCursor(false);
-            }
-            //GUI.Label(new Rect(520f, 600f, 200f, 20f), "Test rain FX", GUI.skin.label);
-            //IsTestRainFxEnabled = GUI.Toggle(new Rect(770f, 600f, 20f, 20f), IsTestRainFxEnabled, "");
+            CreateF8Option();
         }
 
-        public static void OnClickGetMilitaryBedButton()
+        private void CreateF8Option()
+        {
+            if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
+            {
+                GUI.Label(new Rect(520f, 560f, 200f, 20f), "Use F8 to instantly finish", GUI.skin.label);
+                m_IsOptionInstantFinishConstructionsActive = GUI.Toggle(new Rect(770f, 560f, 20f, 20f), m_IsOptionInstantFinishConstructionsActive, "");
+            }
+            else
+            {
+                GUI.Label(new Rect(520f, 560f, 330f, 20f), "Use F8 to instantly to finish any constructions", GUI.skin.label);
+                GUI.Label(new Rect(520f, 580f, 200f, 20f), "is only for single player or when host", GUI.skin.label);
+                GUI.Label(new Rect(520f, 600f, 200f, 20f), "Host can activate using ModManager.", GUI.skin.label);
+            }
+        }
+
+        private static void OnClickGetMilitaryBedButton()
         {
             try
             {
@@ -165,15 +183,7 @@ namespace ModConstructions
             }
         }
 
-        public bool UseOptionF8
-        {
-            get
-            {
-                return IsOptionInstantFinishConstructionsActive;
-            }
-        }
-
-        public static void OnClickUnlockConstructionsButton()
+        private static void OnClickUnlockConstructionsButton()
         {
             try
             {
@@ -185,7 +195,7 @@ namespace ModConstructions
             }
         }
 
-        public static void OnClickUnlockRestingPlacesButton()
+        private static void OnClickUnlockRestingPlacesButton()
         {
             try
             {
@@ -201,20 +211,20 @@ namespace ModConstructions
         {
             try
             {
-                if (!HasUnlockedConstructions)
+                if (!m_UnlockedConstructions)
                 {
-                    List<ItemInfo> list = itemsManager.GetAllInfos().Values.Where(info => info.IsConstruction()).ToList();
-                    foreach (ItemInfo constructionItemInfo in list)
+                    m_UnlockedConstructionsItemInfos = itemsManager.GetAllInfos().Values.Where(info => info.IsConstruction()).ToList();
+                    foreach (ItemInfo constructionItemInfo in m_UnlockedConstructionsItemInfos)
                     {
                         itemsManager.UnlockItemInNotepad(constructionItemInfo.m_ID);
                         itemsManager.UnlockItemInfo(constructionItemInfo.m_ID.ToString());
                         ShowHUDInfoLog(constructionItemInfo.m_ID.ToString(), "HUD_InfoLog_NewEntry");
                     }
-                    HasUnlockedConstructions = true;
+                    m_UnlockedConstructions = true;
                 }
                 else
                 {
-                    ShowHUDBigInfo("All constructions were already unlocked", "Mod Constructions Info", HUDInfoLogTextureType.Count.ToString());
+                    ShowHUDBigInfo("All constructions were already unlocked!", "ModConstructions Info", HUDInfoLogTextureType.Count.ToString());
                 }
             }
             catch (Exception exc)
@@ -250,54 +260,30 @@ namespace ModConstructions
         {
             try
             {
-                if (!HasUnlockedRestingPlaces)
+                if (!m_UnlockedRestingPlaces)
                 {
-                    List<ItemInfo> list = itemsManager.GetAllInfos().Values.Where(info => info.IsShelter()).ToList();
+                    m_UnlockedSheltersItemInfos = itemsManager.GetAllInfos().Values.Where(info => info.IsShelter()).ToList();
 
-                    UnlockShelters(list);
+                    UnlockShelters();
 
-                    UnlockBeds(list);
+                    UnlockBeds();
 
-                    foreach (ItemInfo restingPlaceItemInfo in list)
+                    foreach (ItemInfo restingPlaceItemInfo in m_UnlockedSheltersItemInfos)
                     {
                         itemsManager.UnlockItemInNotepad(restingPlaceItemInfo.m_ID);
                         itemsManager.UnlockItemInfo(restingPlaceItemInfo.m_ID.ToString());
                         ShowHUDInfoLog(restingPlaceItemInfo.m_ID.ToString(), "HUD_InfoLog_NewEntry");
                     }
-                    HasUnlockedRestingPlaces = true;
+                    m_UnlockedRestingPlaces = true;
                 }
                 else
                 {
-                    ShowHUDBigInfo("All resting places were already unlocked!", "Mod Constructions Info", HUDInfoLogTextureType.Count.ToString());
+                    ShowHUDBigInfo("All resting places were already unlocked!", "ModConstructions Info", HUDInfoLogTextureType.Count.ToString());
                 }
             }
             catch (Exception exc)
             {
                 ModAPI.Log.Write($"[{nameof(ModConstructions)}.{nameof(ModConstructions)}:{nameof(UnlockAllRestingPlaces)}] throws exception: {exc.Message}");
-            }
-        }
-
-        public static void UnlockBeds(List<ItemInfo> list)
-        {
-            if (!list.Contains(itemsManager.GetInfo(ItemID.Leaves_Bed)))
-            {
-                list.Add(itemsManager.GetInfo(ItemID.Leaves_Bed));
-            }
-            if (!list.Contains(itemsManager.GetInfo(ItemID.Leaves_Bed)))
-            {
-                list.Add(itemsManager.GetInfo(ItemID.Leaves_Bed));
-            }
-            if (!list.Contains(itemsManager.GetInfo(ItemID.banana_leaf_bed)))
-            {
-                list.Add(itemsManager.GetInfo(ItemID.banana_leaf_bed));
-            }
-            if (!list.Contains(itemsManager.GetInfo(ItemID.Logs_Bed)))
-            {
-                list.Add(itemsManager.GetInfo(ItemID.Logs_Bed));
-            }
-            if (!list.Contains(itemsManager.GetInfo(ItemID.BambooLog_Bed)))
-            {
-                list.Add(itemsManager.GetInfo(ItemID.BambooLog_Bed));
             }
         }
 
@@ -308,31 +294,55 @@ namespace ModConstructions
             return militaryBed;
         }
 
-        public static void UnlockShelters(List<ItemInfo> list)
+        private static void UnlockShelters()
         {
-            if (!list.Contains(itemsManager.GetInfo(ItemID.Hut_Shelter)))
+            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Hut_Shelter)))
             {
-                list.Add(itemsManager.GetInfo(ItemID.Hut_Shelter));
+                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.Hut_Shelter));
             }
 
-            if (!list.Contains(itemsManager.GetInfo(ItemID.Medium_Bamboo_Shelter)))
+            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Medium_Bamboo_Shelter)))
             {
-                list.Add(itemsManager.GetInfo(ItemID.Medium_Bamboo_Shelter));
+                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.Medium_Bamboo_Shelter));
             }
 
-            if (!list.Contains(itemsManager.GetInfo(ItemID.Medium_Shelter)))
+            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Medium_Shelter)))
             {
-                list.Add(itemsManager.GetInfo(ItemID.Medium_Shelter));
+                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.Medium_Shelter));
             }
 
-            if (!list.Contains(itemsManager.GetInfo(ItemID.Small_Bamboo_Shelter)))
+            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Small_Bamboo_Shelter)))
             {
-                list.Add(itemsManager.GetInfo(ItemID.Small_Bamboo_Shelter));
+                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.Small_Bamboo_Shelter));
             }
 
-            if (!list.Contains(itemsManager.GetInfo(ItemID.Bed_Shelter)))
+            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Bed_Shelter)))
             {
-                list.Add(itemsManager.GetInfo(ItemID.Bed_Shelter));
+                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.Bed_Shelter));
+            }
+        }
+
+        private static void UnlockBeds()
+        {
+            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Leaves_Bed)))
+            {
+                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.Leaves_Bed));
+            }
+            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Leaves_Bed)))
+            {
+                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.Leaves_Bed));
+            }
+            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.banana_leaf_bed)))
+            {
+                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.banana_leaf_bed));
+            }
+            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Logs_Bed)))
+            {
+                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.Logs_Bed));
+            }
+            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.BambooLog_Bed)))
+            {
+                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.BambooLog_Bed));
             }
         }
 
