@@ -10,7 +10,7 @@ namespace ModConstructions
     /// ModConstructions is a mod for Green Hell that allows a player to unlock all constructions, shelters and beds.
     /// It also gives the player the possibility to instantly finish any ongoing constructions.
     /// (only in single player mode - Use ModManager for multiplayer).
-    /// Enable the mod UI by pressing END.
+    /// Enable the mod UI by pressing Home.
     /// </summary>
     public class ModConstructions : MonoBehaviour
     {
@@ -24,20 +24,16 @@ namespace ModConstructions
 
         private static HUDManager hUDManager;
 
-        public static List<ItemInfo> m_UnlockedConstructionsItemInfos = new List<ItemInfo>();
-        private static bool m_UnlockedConstructions;
-        public static bool HasUnlockedConstructions => m_UnlockedConstructions;
+        private static List<ItemInfo> m_UnlockedConstructionsItemInfos = new List<ItemInfo>();
+        public static bool HasUnlockedConstructions { get; private set; }
 
-        public static List<ItemInfo> m_UnlockedSheltersItemInfos = new List<ItemInfo>();
-        private static bool m_UnlockedRestingPlaces;
-        public static bool HasUnlockedRestingPlaces => m_UnlockedRestingPlaces;
+        private static List<ItemInfo> m_UnlockedSheltersItemInfos = new List<ItemInfo>();
+        public static bool HasUnlockedRestingPlaces { get; private set; }
 
-        public static bool TestRainFXInfoShown = false;
+        public static bool TestRainFXInfoShown { get; private set; }
+        public static bool TestRainFxEnabled { get; private set; }
 
-        //public bool IsTestRainFxEnabled;
-
-        private bool m_IsOptionInstantFinishConstructionsActive;
-        public bool UseOptionF8 => m_IsOptionInstantFinishConstructionsActive;
+        public bool UseOptionF8 { get; private set; }
 
         /// <summary>
         /// ModAPI required security check to enable this mod feature for multiplayer.
@@ -59,9 +55,50 @@ namespace ModConstructions
             return s_Instance;
         }
 
+        public static void ShowHUDInfoLog(string itemID, string localizedTextKey)
+        {
+            Localization localization = GreenHellGame.Instance.GetLocalization();
+            ((HUDMessages)hUDManager.GetHUD(typeof(HUDMessages))).AddMessage(localization.Get(localizedTextKey) + "  " + localization.Get(itemID));
+        }
+
+        public static void ShowHUDBigInfo(string text, string header, string textureName)
+        {
+            HUDManager hUDManager = HUDManager.Get();
+
+            HUDBigInfo hudBigInfo = (HUDBigInfo)hUDManager.GetHUD(typeof(HUDBigInfo));
+            HUDBigInfoData hudBigInfoData = new HUDBigInfoData
+            {
+                m_Header = header,
+                m_Text = text,
+                m_TextureName = textureName,
+                m_ShowTime = Time.time
+            };
+            hudBigInfo.AddInfo(hudBigInfoData);
+            hudBigInfo.Show(true);
+        }
+
+        private static void EnableCursor(bool enabled = false)
+        {
+            CursorManager.Get().ShowCursor(enabled, false);
+            player = Player.Get();
+
+            if (enabled)
+            {
+                player.BlockMoves();
+                player.BlockRotation();
+                player.BlockInspection();
+            }
+            else
+            {
+                player.UnblockMoves();
+                player.UnblockRotation();
+                player.UnblockInspection();
+            }
+        }
+
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.End))
+            if (Input.GetKeyDown(KeyCode.Home))
             {
                 if (!showUI)
                 {
@@ -76,7 +113,7 @@ namespace ModConstructions
                     EnableCursor(false);
                 }
 
-                //if (IsTestRainFxEnabled)
+                //if (TestRainFxEnabled)
                 //{
                 //    UpdateRainTest();
                 //}
@@ -102,6 +139,7 @@ namespace ModConstructions
             if (showUI)
             {
                 InitData();
+				InitSkinUI();
                 InitModUI();
             }
         }
@@ -109,12 +147,8 @@ namespace ModConstructions
         private static void InitData()
         {
             hUDManager = HUDManager.Get();
-
             itemsManager = ItemsManager.Get();
-
             player = Player.Get();
-
-            InitSkinUI();
         }
 
         private static void InitSkinUI()
@@ -124,7 +158,7 @@ namespace ModConstructions
 
         private void InitModUI()
         {
-            GUI.Box(new Rect(500f, 500f, 450f, 150f), "ModConstructions UI - Press END to open/close", GUI.skin.window);
+            GUI.Box(new Rect(500f, 500f, 450f, 150f), "ModConstructions UI - Press HOME to open/close", GUI.skin.window);
 
             GUI.Label(new Rect(520f, 520f, 200f, 20f), "Click to unlock all constructions", GUI.skin.label);
             if (GUI.Button(new Rect(770f, 520f, 150f, 20f), "Unlock constructions", GUI.skin.button))
@@ -150,7 +184,7 @@ namespace ModConstructions
             //    EnableCursor(false);
             //}
             //GUI.Label(new Rect(520f, 580f, 200f, 20f), "Test rain FX", GUI.skin.label);
-            //IsTestRainFxEnabled = GUI.Toggle(new Rect(770f, 580f, 20f, 20f), IsTestRainFxEnabled, "");
+            //TestRainFxEnabled = GUI.Toggle(new Rect(770f, 580f, 20f, 20f), TestRainFxEnabled, "");
 
             CreateF8Option();
         }
@@ -160,13 +194,13 @@ namespace ModConstructions
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
                 GUI.Label(new Rect(520f, 560f, 200f, 20f), "Use F8 to instantly finish", GUI.skin.label);
-                m_IsOptionInstantFinishConstructionsActive = GUI.Toggle(new Rect(770f, 560f, 20f, 20f), m_IsOptionInstantFinishConstructionsActive, "");
+                UseOptionF8 = GUI.Toggle(new Rect(770f, 560f, 20f, 20f), UseOptionF8, "");
             }
             else
             {
                 GUI.Label(new Rect(520f, 560f, 330f, 20f), "Use F8 to instantly to finish any constructions", GUI.skin.label);
-                GUI.Label(new Rect(520f, 580f, 200f, 20f), "is only for single player or when host", GUI.skin.label);
-                GUI.Label(new Rect(520f, 600f, 200f, 20f), "Host can activate using ModManager.", GUI.skin.label);
+                GUI.Label(new Rect(520f, 580f, 330f, 20f), "is only for single player or when host", GUI.skin.label);
+                GUI.Label(new Rect(520f, 600f, 330f, 20f), "Host can activate using ModManager.", GUI.skin.label);
             }
         }
 
@@ -211,7 +245,7 @@ namespace ModConstructions
         {
             try
             {
-                if (!m_UnlockedConstructions)
+                if (!HasUnlockedConstructions)
                 {
                     m_UnlockedConstructionsItemInfos = itemsManager.GetAllInfos().Values.Where(info => info.IsConstruction()).ToList();
                     foreach (ItemInfo constructionItemInfo in m_UnlockedConstructionsItemInfos)
@@ -220,7 +254,7 @@ namespace ModConstructions
                         itemsManager.UnlockItemInfo(constructionItemInfo.m_ID.ToString());
                         ShowHUDInfoLog(constructionItemInfo.m_ID.ToString(), "HUD_InfoLog_NewEntry");
                     }
-                    m_UnlockedConstructions = true;
+                    HasUnlockedConstructions = true;
                 }
                 else
                 {
@@ -260,7 +294,7 @@ namespace ModConstructions
         {
             try
             {
-                if (!m_UnlockedRestingPlaces)
+                if (!HasUnlockedRestingPlaces)
                 {
                     m_UnlockedSheltersItemInfos = itemsManager.GetAllInfos().Values.Where(info => info.IsShelter()).ToList();
 
@@ -274,7 +308,7 @@ namespace ModConstructions
                         itemsManager.UnlockItemInfo(restingPlaceItemInfo.m_ID.ToString());
                         ShowHUDInfoLog(restingPlaceItemInfo.m_ID.ToString(), "HUD_InfoLog_NewEntry");
                     }
-                    m_UnlockedRestingPlaces = true;
+                    HasUnlockedRestingPlaces = true;
                 }
                 else
                 {
@@ -289,12 +323,21 @@ namespace ModConstructions
 
         public static Item SpawnMilitaryBedToUse()
         {
-            itemsManager.UnlockItemInfo(ItemID.military_bed_toUse.ToString());
-            Item militaryBed = itemsManager.CreateItem(ItemID.military_bed_toUse.ToString(), true);
-            return militaryBed;
+            Item militaryBed = null;
+            try
+            {
+                itemsManager.UnlockItemInfo(ItemID.military_bed_toUse.ToString());
+                militaryBed = itemsManager.CreateItem(ItemID.military_bed_toUse.ToString(), true);
+                return militaryBed;
+            }
+            catch (Exception exc)
+            {
+                ModAPI.Log.Write($"[{nameof(ModConstructions)}.{nameof(ModConstructions)}:{nameof(SpawnMilitaryBedToUse)}] throws exception: {exc.Message}");
+                return militaryBed;
+            }
         }
 
-        private static void UnlockShelters()
+        public static void UnlockShelters()
         {
             if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Hut_Shelter)))
             {
@@ -322,7 +365,7 @@ namespace ModConstructions
             }
         }
 
-        private static void UnlockBeds()
+        public static void UnlockBeds()
         {
             if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Leaves_Bed)))
             {
@@ -343,47 +386,6 @@ namespace ModConstructions
             if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.BambooLog_Bed)))
             {
                 m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.BambooLog_Bed));
-            }
-        }
-
-        public static void ShowHUDInfoLog(string itemID, string localizedTextKey)
-        {
-            Localization localization = GreenHellGame.Instance.GetLocalization();
-            ((HUDMessages)hUDManager.GetHUD(typeof(HUDMessages))).AddMessage(localization.Get(localizedTextKey) + "  " + localization.Get(itemID));
-        }
-
-        public static void ShowHUDBigInfo(string text, string header, string textureName)
-        {
-            HUDManager hUDManager = HUDManager.Get();
-
-            HUDBigInfo hudBigInfo = (HUDBigInfo)hUDManager.GetHUD(typeof(HUDBigInfo));
-            HUDBigInfoData hudBigInfoData = new HUDBigInfoData
-            {
-                m_Header = header,
-                m_Text = text,
-                m_TextureName = textureName,
-                m_ShowTime = Time.time
-            };
-            hudBigInfo.AddInfo(hudBigInfoData);
-            hudBigInfo.Show(true);
-        }
-
-        private static void EnableCursor(bool enabled = false)
-        {
-            CursorManager.Get().ShowCursor(enabled, false);
-            player = Player.Get();
-
-            if (enabled)
-            {
-                player.BlockMoves();
-                player.BlockRotation();
-                player.BlockInspection();
-            }
-            else
-            {
-                player.UnblockMoves();
-                player.UnblockRotation();
-                player.UnblockInspection();
             }
         }
     }

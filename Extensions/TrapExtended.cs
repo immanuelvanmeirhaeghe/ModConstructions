@@ -1,7 +1,7 @@
 ﻿using Enums;
 using UnityEngine;
 
-namespace ModConstructions.Extensions
+namespace ModConstructions
 {
     class TrapExtended : Trap
     {
