@@ -15,7 +15,7 @@
         {
             if (ModConstructions.Get().IsModActiveForSingleplayer || ModConstructions.Get().IsModActiveForMultiplayer)
             {
-                return true;
+                return m_ID.ToString().ToLower().EndsWith("shelter");
             }
             return base.IsShelter();
         }

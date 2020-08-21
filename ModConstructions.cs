@@ -139,7 +139,7 @@ namespace ModConstructions
             if (showUI)
             {
                 InitData();
-				InitSkinUI();
+                InitSkinUI();
                 InitModUI();
             }
         }
@@ -168,52 +168,30 @@ namespace ModConstructions
                 EnableCursor(false);
             }
 
-            GUI.Label(new Rect(520f, 540f, 200f, 20f), "Click to unlock shelters-beds", GUI.skin.label);
-            if (GUI.Button(new Rect(770f, 540f, 150f, 20f), "Unlock resting places", GUI.skin.button))
-            {
-                OnClickUnlockRestingPlacesButton();
-                showUI = false;
-                EnableCursor(false);
-            }
-
-            //GUI.Label(new Rect(520f, 560f, 200f, 20f), "Click to get a military bed", GUI.skin.label);
-            //if (GUI.Button(new Rect(770f, 560f, 150f, 20f), "Get military bed", GUI.skin.button))
-            //{
-            //    OnClickGetMilitaryBedButton();
-            //    showUI = false;
-            //    EnableCursor(false);
-            //}
             //GUI.Label(new Rect(520f, 580f, 200f, 20f), "Test rain FX", GUI.skin.label);
             //TestRainFxEnabled = GUI.Toggle(new Rect(770f, 580f, 20f, 20f), TestRainFxEnabled, "");
 
             CreateF8Option();
+
+            if (GUI.Button(new Rect(770f, 580f, 150f, 20f), "CANCEL", GUI.skin.button))
+            {
+                showUI = false;
+                EnableCursor(false);
+            }
         }
 
         private void CreateF8Option()
         {
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
-                GUI.Label(new Rect(520f, 560f, 200f, 20f), "Use F8 to instantly finish", GUI.skin.label);
-                UseOptionF8 = GUI.Toggle(new Rect(770f, 560f, 20f, 20f), UseOptionF8, "");
+                GUI.Label(new Rect(520f, 540f, 200f, 20f), "Use F8 to instantly finish", GUI.skin.label);
+                UseOptionF8 = GUI.Toggle(new Rect(770f, 540f, 20f, 20f), UseOptionF8, "");
             }
             else
             {
-                GUI.Label(new Rect(520f, 560f, 330f, 20f), "Use F8 to instantly to finish any constructions", GUI.skin.label);
-                GUI.Label(new Rect(520f, 580f, 330f, 20f), "is only for single player or when host", GUI.skin.label);
-                GUI.Label(new Rect(520f, 600f, 330f, 20f), "Host can activate using ModManager.", GUI.skin.label);
-            }
-        }
-
-        private static void OnClickGetMilitaryBedButton()
-        {
-            try
-            {
-                Item bed = SpawnMilitaryBedToUse();
-                ShowHUDBigInfo($"Created 1 x {bed.m_Info.GetNameToDisplayLocalized()}", "Mod Constructions Info", HUDInfoLogTextureType.Count.ToString());
-            }
-            catch (Exception exc)
-            {
-                ModAPI.Log.Write($"[{nameof(ModConstructions)}.{nameof(ModConstructions)}:{nameof(OnClickUnlockConstructionsButton)}] throws exception: {exc.Message}");
+                GUI.Label(new Rect(520f, 540f, 330f, 20f), "Use F8 to instantly to finish any constructions", GUI.skin.label);
+                GUI.Label(new Rect(520f, 560f, 330f, 20f), "is only for single player or when host", GUI.skin.label);
+                GUI.Label(new Rect(520f, 580f, 330f, 20f), "Host can activate using ModManager.", GUI.skin.label);
             }
         }
 
@@ -226,18 +204,6 @@ namespace ModConstructions
             catch (Exception exc)
             {
                 ModAPI.Log.Write($"[{nameof(ModConstructions)}.{nameof(ModConstructions)}:{nameof(OnClickUnlockConstructionsButton)}] throws exception: {exc.Message}");
-            }
-        }
-
-        private static void OnClickUnlockRestingPlacesButton()
-        {
-            try
-            {
-                UnlockAllRestingPlaces();
-            }
-            catch (Exception exc)
-            {
-                ModAPI.Log.Write($"[{nameof(ModConstructions)}.{nameof(ModConstructions)}:{nameof(OnClickUnlockRestingPlacesButton)}] throws exception: {exc.Message}");
             }
         }
 
@@ -287,105 +253,6 @@ namespace ModConstructions
             catch (Exception exc)
             {
                 ModAPI.Log.Write($"[{nameof(ModConstructions)}.{nameof(ModConstructions)}:{nameof(RainProofing)}] throws exception: {exc.Message}");
-            }
-        }
-
-        public static void UnlockAllRestingPlaces()
-        {
-            try
-            {
-                if (!HasUnlockedRestingPlaces)
-                {
-                    m_UnlockedSheltersItemInfos = itemsManager.GetAllInfos().Values.Where(info => info.IsShelter()).ToList();
-
-                    UnlockShelters();
-
-                    UnlockBeds();
-
-                    foreach (ItemInfo restingPlaceItemInfo in m_UnlockedSheltersItemInfos)
-                    {
-                        itemsManager.UnlockItemInNotepad(restingPlaceItemInfo.m_ID);
-                        itemsManager.UnlockItemInfo(restingPlaceItemInfo.m_ID.ToString());
-                        ShowHUDInfoLog(restingPlaceItemInfo.m_ID.ToString(), "HUD_InfoLog_NewEntry");
-                    }
-                    HasUnlockedRestingPlaces = true;
-                }
-                else
-                {
-                    ShowHUDBigInfo("All resting places were already unlocked!", "ModConstructions Info", HUDInfoLogTextureType.Count.ToString());
-                }
-            }
-            catch (Exception exc)
-            {
-                ModAPI.Log.Write($"[{nameof(ModConstructions)}.{nameof(ModConstructions)}:{nameof(UnlockAllRestingPlaces)}] throws exception: {exc.Message}");
-            }
-        }
-
-        public static Item SpawnMilitaryBedToUse()
-        {
-            Item militaryBed = null;
-            try
-            {
-                itemsManager.UnlockItemInfo(ItemID.military_bed_toUse.ToString());
-                militaryBed = itemsManager.CreateItem(ItemID.military_bed_toUse.ToString(), true);
-                return militaryBed;
-            }
-            catch (Exception exc)
-            {
-                ModAPI.Log.Write($"[{nameof(ModConstructions)}.{nameof(ModConstructions)}:{nameof(SpawnMilitaryBedToUse)}] throws exception: {exc.Message}");
-                return militaryBed;
-            }
-        }
-
-        public static void UnlockShelters()
-        {
-            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Hut_Shelter)))
-            {
-                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.Hut_Shelter));
-            }
-
-            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Medium_Bamboo_Shelter)))
-            {
-                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.Medium_Bamboo_Shelter));
-            }
-
-            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Medium_Shelter)))
-            {
-                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.Medium_Shelter));
-            }
-
-            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Small_Bamboo_Shelter)))
-            {
-                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.Small_Bamboo_Shelter));
-            }
-
-            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Bed_Shelter)))
-            {
-                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.Bed_Shelter));
-            }
-        }
-
-        public static void UnlockBeds()
-        {
-            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Leaves_Bed)))
-            {
-                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.Leaves_Bed));
-            }
-            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Leaves_Bed)))
-            {
-                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.Leaves_Bed));
-            }
-            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.banana_leaf_bed)))
-            {
-                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.banana_leaf_bed));
-            }
-            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.Logs_Bed)))
-            {
-                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.Logs_Bed));
-            }
-            if (!m_UnlockedSheltersItemInfos.Contains(itemsManager.GetInfo(ItemID.BambooLog_Bed)))
-            {
-                m_UnlockedSheltersItemInfos.Add(itemsManager.GetInfo(ItemID.BambooLog_Bed));
             }
         }
     }
