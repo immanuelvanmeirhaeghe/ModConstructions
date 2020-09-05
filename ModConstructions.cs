@@ -1,5 +1,4 @@
-﻿using Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -16,9 +15,11 @@ namespace ModConstructions
     {
         private static ModConstructions s_Instance;
 
+        private static readonly string ModName = nameof(ModConstructions);
+
         private bool showUI = false;
 
-        public Rect ModConstructionsWindow = new Rect(500f, 500f, 450f, 150f);
+        public Rect ModConstructionsScreen = new Rect(500f, 500f, 450f, 150f);
 
         private static ItemsManager itemsManager;
 
@@ -74,7 +75,6 @@ namespace ModConstructions
         private void EnableCursor(bool blockPlayer = false)
         {
             CursorManager.Get().ShowCursor(blockPlayer, false);
-            player = Player.Get();
 
             if (blockPlayer)
             {
@@ -97,7 +97,6 @@ namespace ModConstructions
                 if (!showUI)
                 {
                     InitData();
-
                     EnableCursor(true);
                 }
                 showUI = !showUI;
@@ -133,26 +132,31 @@ namespace ModConstructions
         private void InitWindow()
         {
             int wid = GetHashCode();
-            ModConstructionsWindow = GUI.Window(wid, ModConstructionsWindow, InitModWindow, $"{nameof(ModConstructions)}", GUI.skin.window);
+            ModConstructionsScreen = GUILayout.Window(wid, ModConstructionsScreen, InitModConstructionsScreen, $"{ModName}", GUI.skin.window);
         }
 
-        private void InitModWindow(int windowId)
+        private void InitModConstructionsScreen(int windowID)
         {
-            if (GUI.Button(new Rect(930f, 500f, 20f, 20f), "X", GUI.skin.button))
+            using (var verticalScope = new GUILayout.VerticalScope($"{ModName}box"))
             {
-                CloseWindow();
+                if (GUI.Button(new Rect(430f, 0f, 20f, 20f), "X", GUI.skin.button))
+                {
+                    CloseWindow();
+                }
+
+                using (var horizontalScope = new GUILayout.HorizontalScope("constrBox"))
+                {
+                    GUILayout.Label("All blueprints", GUI.skin.label);
+                    if (GUILayout.Button("Unlock constructions", GUI.skin.button))
+                    {
+                        OnClickUnlockConstructionsButton();
+                        CloseWindow();
+                    }
+                }
+
+                CreateF8Option();
             }
-
-            GUI.Label(new Rect(520f, 520f, 200f, 20f), "All blueprints", GUI.skin.label);
-            if (GUI.Button(new Rect(770f, 520f, 150f, 20f), "Unlock constructions", GUI.skin.button))
-            {
-                OnClickUnlockConstructionsButton();
-                CloseWindow();
-            }
-
-            CreateF8Option();
-
-            GUI.DragWindow(new Rect(0, 0, 10000, 10000));
+            GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
         }
 
         private void CloseWindow()
@@ -165,14 +169,20 @@ namespace ModConstructions
         {
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
-                GUI.Label(new Rect(520f, 540f, 200f, 20f), "Use F8 to instantly finish", GUI.skin.label);
-                UseOptionF8 = GUI.Toggle(new Rect(770f, 540f, 20f, 20f), UseOptionF8, "", GUI.skin.toggle);
+                using (var horizontalScope = new GUILayout.HorizontalScope("actionBox"))
+                {
+                    GUILayout.Label("Use F8 to instantly finish", GUI.skin.label);
+                    UseOptionF8 = GUILayout.Toggle(UseOptionF8, "", GUI.skin.toggle);
+                }
             }
             else
             {
-                GUI.Label(new Rect(520f, 540f, 330f, 20f), "Use F8 to instantly finish any constructions", GUI.skin.label);
-                GUI.Label(new Rect(520f, 560f, 330f, 20f), "is only for single player or when host", GUI.skin.label);
-                GUI.Label(new Rect(520f, 580f, 330f, 20f), "Host can activate using ModManager.", GUI.skin.label);
+                using (var verticalScope = new GUILayout.VerticalScope("infoBox"))
+                {
+                    GUILayout.Label("Use F8 to instantly finish any constructions", GUI.skin.label);
+                    GUILayout.Label("is only for single player or when host", GUI.skin.label);
+                    GUILayout.Label("Host can activate using ModManager.", GUI.skin.label);
+                }
             }
         }
 
@@ -184,7 +194,7 @@ namespace ModConstructions
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{nameof(ModConstructions)}.{nameof(ModConstructions)}:{nameof(OnClickUnlockConstructionsButton)}] throws exception: {exc.Message}");
+                ModAPI.Log.Write($"[{ModName}.{ModName}:{nameof(OnClickUnlockConstructionsButton)}] throws exception: {exc.Message}");
             }
         }
 
@@ -205,12 +215,12 @@ namespace ModConstructions
                 }
                 else
                 {
-                    ShowHUDBigInfo("All constructions were already unlocked!", $"{nameof(ModConstructions)} Info", HUDInfoLogTextureType.Count.ToString());
+                    ShowHUDBigInfo("All constructions were already unlocked!", $"{ModName} Info", HUDInfoLogTextureType.Count.ToString());
                 }
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{nameof(ModConstructions)}.{nameof(ModConstructions)}:{nameof(UnlockAllConstructions)}] throws exception: {exc.Message}");
+                ModAPI.Log.Write($"[{ModName}.{ModName}:{nameof(UnlockAllConstructions)}] throws exception: {exc.Message}");
             }
         }
     }
