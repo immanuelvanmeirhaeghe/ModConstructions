@@ -18,35 +18,29 @@ namespace ModConstructions
 
         private bool showUI = false;
 
+        public Rect ModConstructionsWindow = new Rect(500f, 500f, 450f, 150f);
+
         private static ItemsManager itemsManager;
 
         private static Player player;
 
         private static HUDManager hUDManager;
 
-        private static List<ItemInfo> m_UnlockedConstructionsItemInfos = new List<ItemInfo>();
+        public static List<ItemInfo> m_UnlockedConstructionsItemInfos = new List<ItemInfo>();
+
         public static bool HasUnlockedConstructions { get; private set; }
 
-        private static List<ItemInfo> m_UnlockedSheltersItemInfos = new List<ItemInfo>();
         public static bool HasUnlockedRestingPlaces { get; private set; }
-
-        public static bool TestRainFXInfoShown { get; private set; }
-        public static bool TestRainFxEnabled { get; private set; }
 
         public bool UseOptionF8 { get; private set; }
 
-        /// <summary>
-        /// ModAPI required security check to enable this mod feature for multiplayer.
-        /// See <see cref="ModManager"/> for implementation.
-        /// Based on request in chat: use  !requestMods in chat as client to request the host to activate mods for them.
-        /// </summary>
-        /// <returns>true if enabled, else false</returns>
-        public bool IsModActiveForMultiplayer => FindObjectOfType(typeof(ModManager.ModManager)) != null ? ModManager.ModManager.AllowModsForMultiplayer : false;
+        public bool IsModActiveForMultiplayer => FindObjectOfType(typeof(ModManager.ModManager)) != null && ModManager.ModManager.AllowModsForMultiplayer;
 
         public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
 
         public ModConstructions()
         {
+            useGUILayout = true;
             s_Instance = this;
         }
 
@@ -55,13 +49,13 @@ namespace ModConstructions
             return s_Instance;
         }
 
-        public static void ShowHUDInfoLog(string itemID, string localizedTextKey)
+        public void ShowHUDInfoLog(string itemID, string localizedTextKey)
         {
             Localization localization = GreenHellGame.Instance.GetLocalization();
             ((HUDMessages)hUDManager.GetHUD(typeof(HUDMessages))).AddMessage(localization.Get(localizedTextKey) + "  " + localization.Get(itemID));
         }
 
-        public static void ShowHUDBigInfo(string text, string header, string textureName)
+        public void ShowHUDBigInfo(string text, string header, string textureName)
         {
             HUDManager hUDManager = HUDManager.Get();
 
@@ -77,12 +71,12 @@ namespace ModConstructions
             hudBigInfo.Show(true);
         }
 
-        private static void EnableCursor(bool enabled = false)
+        private void EnableCursor(bool blockPlayer = false)
         {
-            CursorManager.Get().ShowCursor(enabled, false);
+            CursorManager.Get().ShowCursor(blockPlayer, false);
             player = Player.Get();
 
-            if (enabled)
+            if (blockPlayer)
             {
                 player.BlockMoves();
                 player.BlockRotation();
@@ -106,31 +100,11 @@ namespace ModConstructions
 
                     EnableCursor(true);
                 }
-                // toggle menu
                 showUI = !showUI;
                 if (!showUI)
                 {
                     EnableCursor(false);
                 }
-
-                //if (TestRainFxEnabled)
-                //{
-                //    UpdateRainTest();
-                //}
-            }
-        }
-
-        private static void UpdateRainTest()
-        {
-            if (RainManager.Get().IsRain())
-            {
-                ShowHUDBigInfo("Testing rain FX - check beneath roofs!", "ModConstructions Info", HUDInfoLogTextureType.Count.ToString());
-                TestRainFXInfoShown = true;
-                RainProofing();
-            }
-            else
-            {
-                TestRainFXInfoShown = false;
             }
         }
 
@@ -140,44 +114,50 @@ namespace ModConstructions
             {
                 InitData();
                 InitSkinUI();
-                InitModUI();
+                InitWindow();
             }
         }
 
-        private static void InitData()
+        private void InitData()
         {
             hUDManager = HUDManager.Get();
             itemsManager = ItemsManager.Get();
             player = Player.Get();
         }
 
-        private static void InitSkinUI()
+        private void InitSkinUI()
         {
             GUI.skin = ModAPI.Interface.Skin;
         }
 
-        private void InitModUI()
+        private void InitWindow()
         {
-            GUI.Box(new Rect(500f, 500f, 450f, 150f), "ModConstructions UI - Press HOME to open/close", GUI.skin.window);
+            ModConstructionsWindow = GUI.Window(0, ModConstructionsWindow, InitModWindow, $"{nameof(ModConstructions)}", GUI.skin.window);
+        }
 
-            GUI.Label(new Rect(520f, 520f, 200f, 20f), "Click to unlock all constructions", GUI.skin.label);
+        private void InitModWindow(int windowId)
+        {
+            if (GUI.Button(new Rect(930f, 500f, 20f, 20f), "X", GUI.skin.button))
+            {
+                CloseWindow();
+            }
+
+            GUI.Label(new Rect(520f, 520f, 200f, 20f), "All construction blueprints", GUI.skin.label);
             if (GUI.Button(new Rect(770f, 520f, 150f, 20f), "Unlock constructions", GUI.skin.button))
             {
                 OnClickUnlockConstructionsButton();
-                showUI = false;
-                EnableCursor(false);
+                CloseWindow();
             }
-
-            //GUI.Label(new Rect(520f, 580f, 200f, 20f), "Test rain FX", GUI.skin.label);
-            //TestRainFxEnabled = GUI.Toggle(new Rect(770f, 580f, 20f, 20f), TestRainFxEnabled, "");
 
             CreateF8Option();
 
-            if (GUI.Button(new Rect(770f, 580f, 150f, 20f), "CANCEL", GUI.skin.button))
-            {
-                showUI = false;
-                EnableCursor(false);
-            }
+            GUI.DragWindow(new Rect(0, 0, 10000, 10000));
+        }
+
+        private void CloseWindow()
+        {
+            showUI = false;
+            EnableCursor(false);
         }
 
         private void CreateF8Option()
@@ -185,17 +165,17 @@ namespace ModConstructions
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
                 GUI.Label(new Rect(520f, 540f, 200f, 20f), "Use F8 to instantly finish", GUI.skin.label);
-                UseOptionF8 = GUI.Toggle(new Rect(770f, 540f, 20f, 20f), UseOptionF8, "");
+                UseOptionF8 = GUI.Toggle(new Rect(770f, 540f, 20f, 20f), UseOptionF8, "", GUI.skin.toggle);
             }
             else
             {
-                GUI.Label(new Rect(520f, 540f, 330f, 20f), "Use F8 to instantly to finish any constructions", GUI.skin.label);
+                GUI.Label(new Rect(520f, 540f, 330f, 20f), "Use F8 to instantly finish any constructions", GUI.skin.label);
                 GUI.Label(new Rect(520f, 560f, 330f, 20f), "is only for single player or when host", GUI.skin.label);
                 GUI.Label(new Rect(520f, 580f, 330f, 20f), "Host can activate using ModManager.", GUI.skin.label);
             }
         }
 
-        private static void OnClickUnlockConstructionsButton()
+        private void OnClickUnlockConstructionsButton()
         {
             try
             {
@@ -207,7 +187,7 @@ namespace ModConstructions
             }
         }
 
-        public static void UnlockAllConstructions()
+        public void UnlockAllConstructions()
         {
             try
             {
@@ -224,35 +204,12 @@ namespace ModConstructions
                 }
                 else
                 {
-                    ShowHUDBigInfo("All constructions were already unlocked!", "ModConstructions Info", HUDInfoLogTextureType.Count.ToString());
+                    ShowHUDBigInfo("All constructions were already unlocked!", $"{nameof(ModConstructions)} Info", HUDInfoLogTextureType.Count.ToString());
                 }
             }
             catch (Exception exc)
             {
                 ModAPI.Log.Write($"[{nameof(ModConstructions)}.{nameof(ModConstructions)}:{nameof(UnlockAllConstructions)}] throws exception: {exc.Message}");
-            }
-        }
-
-        public static void RainProofing()
-        {
-            try
-            {
-                List<Construction> roofs = Construction.s_AllRoofs;
-                foreach (Construction roof in roofs)
-                {
-                    Vector3Int roofPosition = Vector3Int.FloorToInt(roof.transform.position);
-                    ModAPI.Log.Write($"Roof location x: {roofPosition.x} y: {roofPosition.y} z: {roofPosition.z}");
-                    //RainCutter roofCutter = new RainCutter
-                    //{
-                    //    m_Type = RainCutterType.Tent
-                    //};
-                    //((RainCutterExtended)roofCutter).SetBoxCollider(roof.m_BoxCollider);
-                    //RainManager.Get().RegisterRainCutter(((RainCutterExtended)roofCutter));
-                }
-            }
-            catch (Exception exc)
-            {
-                ModAPI.Log.Write($"[{nameof(ModConstructions)}.{nameof(ModConstructions)}:{nameof(RainProofing)}] throws exception: {exc.Message}");
             }
         }
     }
