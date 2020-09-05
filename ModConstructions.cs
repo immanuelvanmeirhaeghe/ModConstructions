@@ -132,7 +132,8 @@ namespace ModConstructions
 
         private void InitWindow()
         {
-            ModConstructionsWindow = GUI.Window(0, ModConstructionsWindow, InitModWindow, $"{nameof(ModConstructions)}", GUI.skin.window);
+            int wid = GetHashCode();
+            ModConstructionsWindow = GUI.Window(wid, ModConstructionsWindow, InitModWindow, $"{nameof(ModConstructions)}", GUI.skin.window);
         }
 
         private void InitModWindow(int windowId)
@@ -142,7 +143,7 @@ namespace ModConstructions
                 CloseWindow();
             }
 
-            GUI.Label(new Rect(520f, 520f, 200f, 20f), "All construction blueprints", GUI.skin.label);
+            GUI.Label(new Rect(520f, 520f, 200f, 20f), "All blueprints", GUI.skin.label);
             if (GUI.Button(new Rect(770f, 520f, 150f, 20f), "Unlock constructions", GUI.skin.button))
             {
                 OnClickUnlockConstructionsButton();
