@@ -137,14 +137,14 @@ namespace ModConstructions
 
         private void InitModConstructionsScreen(int windowID)
         {
-            using (var verticalScope = new GUILayout.VerticalScope($"{ModName}box"))
+            using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
             {
                 if (GUI.Button(new Rect(430f, 0f, 20f, 20f), "X", GUI.skin.button))
                 {
                     CloseWindow();
                 }
 
-                using (var horizontalScope = new GUILayout.HorizontalScope("constrBox"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label("All blueprints", GUI.skin.label);
                     if (GUILayout.Button("Unlock constructions", GUI.skin.button))
@@ -169,7 +169,7 @@ namespace ModConstructions
         {
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
-                using (var horizontalScope = new GUILayout.HorizontalScope("actionBox"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Use F8 to instantly finish", GUI.skin.label);
                     UseOptionF8 = GUILayout.Toggle(UseOptionF8, "", GUI.skin.toggle);
@@ -177,7 +177,7 @@ namespace ModConstructions
             }
             else
             {
-                using (var verticalScope = new GUILayout.VerticalScope("infoBox"))
+                using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Use F8 to instantly finish any constructions", GUI.skin.label);
                     GUILayout.Label("is only for single player or when host", GUI.skin.label);
