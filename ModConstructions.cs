@@ -11,7 +11,7 @@ namespace ModConstructions
     /// (only in single player mode - Use ModManager for multiplayer).
     /// Enable the mod UI by pressing Home.
     /// </summary>
-    public class ModConstructions : MonoBehaviour
+    public class ModConstructions : MonoBehaviour, IYesNoDialogOwner
     {
         private static ModConstructions s_Instance;
 
@@ -25,7 +25,9 @@ namespace ModConstructions
 
         private static HUDManager hUDManager;
 
-        public static List<ItemInfo> UnlockedConstructionsItemInfos = new List<ItemInfo>();
+        private static Item SelectedItemToDestroy;
+
+        public static List<ItemInfo> ConstructionItemInfos = new List<ItemInfo>();
 
         public static bool HasUnlockedConstructions { get; private set; }
 
@@ -156,7 +158,7 @@ namespace ModConstructions
 
                 using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    GUILayout.Label("Learn all blueprints", GUI.skin.label);
+                    GUILayout.Label("Construction blueprints", GUI.skin.label);
                     if (GUILayout.Button("Unlock constructions", GUI.skin.button))
                     {
                         OnClickUnlockConstructionsButton();
@@ -215,21 +217,18 @@ namespace ModConstructions
                 if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo))
                 {
                     GameObject go = hitInfo.collider.transform.gameObject;
-                    Item item = go.GetComponent<Item>();
-                    if (!item.IsPlayer() && !item.IsAI()
-                                                       && !item.IsHumanAI()
-                                                        || item.m_Info.IsConstruction()
-                                                        || item.m_Info.IsShelter()
-                                                        || item.m_Info.IsStand()
-                                                        || item.m_Info.IsWall()
-                                                        || item.IsRoof()
-                                                        || item.IsShower()
-                                                        || item.IsLadder()
-                                                        || item.IsFreeHandsLadder()
-                                                        || ItemInfo.IsSmoker(item.m_Info.m_ID))
+                    if (go != null)
                     {
-                        itemsManager.AddItemToDestroy(item);
-                        ShowHUDBigInfo($"{item.m_Info.GetNameToDisplayLocalized()} destroyed!", $"{ModName} Info", HUDInfoLogTextureType.Count.ToString());
+                        Item item = go.GetComponent<Item>();
+                        if (item != null)
+                        {
+                            if (!item.IsPlayer() && !item.IsAI() && !item.IsHumanAI())
+                            {
+                                SelectedItemToDestroy = item;
+                                var deleteYesNo = GreenHellGame.GetYesNoDialog();
+                                deleteYesNo.Show(this, Enums.DialogWindowType.YesNo, $"Destroy {item.m_Info.GetNameToDisplayLocalized()}", "Destroy?", true);
+                            }
+                        }
                     }
                 }
             }
@@ -245,18 +244,13 @@ namespace ModConstructions
             {
                 if (!HasUnlockedConstructions)
                 {
-                    UnlockedConstructionsItemInfos = itemsManager.GetAllInfos().Values.Where(info => info.m_Item.IsRoof()
-                                                                                                                                                                                || info.m_Item.IsShower()
-                                                                                                                                                                                || info.m_Item.IsLadder()
-                                                                                                                                                                                || info.m_Item.IsFreeHandsLadder()
-                                                                                                                                                                                || info.IsConstruction()
-                                                                                                                                                                                || info.IsShelter()
+                    ConstructionItemInfos = itemsManager.GetAllInfos().Values.Where(info => info.IsConstruction()
                                                                                                                                                                                 || info.IsStand()
                                                                                                                                                                                 || info.IsWall()
                                                                                                                                                                                 || ItemInfo.IsSmoker(info.m_ID)).ToList();
-                    if (UnlockedConstructionsItemInfos != null)
+                    if (ConstructionItemInfos != null)
                     {
-                        foreach (ItemInfo constructionItemInfo in UnlockedConstructionsItemInfos)
+                        foreach (ItemInfo constructionItemInfo in ConstructionItemInfos)
                         {
                             itemsManager.UnlockItemInNotepad(constructionItemInfo.m_ID);
                             itemsManager.UnlockItemInfo(constructionItemInfo.m_ID.ToString());
@@ -274,6 +268,30 @@ namespace ModConstructions
             {
                 ModAPI.Log.Write($"[{ModName}.{ModName}:{nameof(UnlockAllConstructions)}] throws exception: {exc.Message}");
             }
+        }
+
+        public void OnYesFromDialog()
+        {
+            if (SelectedItemToDestroy != null)
+            {
+                itemsManager.AddItemToDestroy(SelectedItemToDestroy);
+                ShowHUDBigInfo($"{SelectedItemToDestroy.m_Info.GetNameToDisplayLocalized()} destroyed!", $"{ModName} Info", HUDInfoLogTextureType.Count.ToString());
+            }
+        }
+
+        public void OnNoFromDialog()
+        {
+            SelectedItemToDestroy = null;
+        }
+
+        public void OnOkFromDialog()
+        {
+
+        }
+
+        public void OnCloseDialog()
+        {
+
         }
     }
 }

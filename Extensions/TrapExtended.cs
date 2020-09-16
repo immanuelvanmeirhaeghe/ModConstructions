@@ -4,8 +4,7 @@ using UnityEngine;
 namespace ModConstructions
 {
     class TrapExtended : Trap
-    {
-        protected override void Start()
+    {        protected override void Start()
         {
              if (m_Info.m_ID == ItemID.Frog_Stretcher)
             {
