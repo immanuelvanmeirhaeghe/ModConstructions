@@ -17,8 +17,6 @@ namespace ModConstructions
 
         private static readonly string ModName = nameof(ModConstructions);
 
-        private bool showUI = false;
-
         public Rect ModConstructionsScreen = new Rect(500f, 500f, 450f, 150f);
 
         private static ItemsManager itemsManager;
@@ -27,11 +25,13 @@ namespace ModConstructions
 
         private static HUDManager hUDManager;
 
-        public static List<ItemInfo> m_UnlockedConstructionsItemInfos = new List<ItemInfo>();
+        public static List<ItemInfo> UnlockedConstructionsItemInfos = new List<ItemInfo>();
 
         public static bool HasUnlockedConstructions { get; private set; }
 
         public static bool HasUnlockedRestingPlaces { get; private set; }
+
+        private bool showUI = false;
 
         public bool UseOptionF8 { get; private set; }
 
@@ -99,12 +99,22 @@ namespace ModConstructions
                     InitData();
                     EnableCursor(true);
                 }
-                showUI = !showUI;
+                ToggleShowUI();
                 if (!showUI)
                 {
                     EnableCursor(false);
                 }
             }
+
+            if (Input.GetKeyDown(KeyCode.Delete))
+            {
+                DestroyMouseTarget();
+            }
+        }
+
+        private void ToggleShowUI()
+        {
+            showUI = !showUI;
         }
 
         private void OnGUI()
@@ -139,14 +149,14 @@ namespace ModConstructions
         {
             using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
             {
-                if (GUI.Button(new Rect(430f, 0f, 20f, 20f), "X", GUI.skin.button))
+                if (GUI.Button(new Rect(430f, 0f, 20f, 20f), "x", GUI.skin.button))
                 {
                     CloseWindow();
                 }
 
                 using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    GUILayout.Label("All blueprints", GUI.skin.label);
+                    GUILayout.Label("Learn all blueprints", GUI.skin.label);
                     if (GUILayout.Button("Unlock constructions", GUI.skin.button))
                     {
                         OnClickUnlockConstructionsButton();
@@ -172,14 +182,14 @@ namespace ModConstructions
                 using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Use F8 to instantly finish", GUI.skin.label);
-                    UseOptionF8 = GUILayout.Toggle(UseOptionF8, "", GUI.skin.toggle);
+                    UseOptionF8 = GUILayout.Toggle(UseOptionF8, string.Empty, GUI.skin.toggle);
                 }
             }
             else
             {
                 using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
-                    GUILayout.Label("Use F8 to instantly finish any constructions", GUI.skin.label);
+                    GUILayout.Label("F8 option", GUI.skin.label);
                     GUILayout.Label("is only for single player or when host", GUI.skin.label);
                     GUILayout.Label("Host can activate using ModManager.", GUI.skin.label);
                 }
@@ -198,18 +208,60 @@ namespace ModConstructions
             }
         }
 
+        public void DestroyMouseTarget()
+        {
+            try
+            {
+                if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo))
+                {
+                    GameObject go = hitInfo.collider.transform.gameObject;
+                    Item item = go.GetComponent<Item>();
+                    if (!item.IsPlayer() && !item.IsAI()
+                                                       && !item.IsHumanAI()
+                                                        || item.m_Info.IsConstruction()
+                                                        || item.m_Info.IsShelter()
+                                                        || item.m_Info.IsStand()
+                                                        || item.m_Info.IsWall()
+                                                        || item.IsRoof()
+                                                        || item.IsShower()
+                                                        || item.IsLadder()
+                                                        || item.IsFreeHandsLadder()
+                                                        || ItemInfo.IsSmoker(item.m_Info.m_ID))
+                    {
+                        itemsManager.AddItemToDestroy(item);
+                        ShowHUDBigInfo($"{item.m_Info.GetNameToDisplayLocalized()} destroyed!", $"{ModName} Info", HUDInfoLogTextureType.Count.ToString());
+                    }
+                }
+            }
+            catch (Exception exc)
+            {
+                ModAPI.Log.Write($"[{ModName}.{ModName}:{nameof(DestroyMouseTarget)}] throws exception: {exc.Message}");
+            }
+        }
+
         public void UnlockAllConstructions()
         {
             try
             {
                 if (!HasUnlockedConstructions)
                 {
-                    m_UnlockedConstructionsItemInfos = itemsManager.GetAllInfos().Values.Where(info => info.IsConstruction()).ToList();
-                    foreach (ItemInfo constructionItemInfo in m_UnlockedConstructionsItemInfos)
+                    UnlockedConstructionsItemInfos = itemsManager.GetAllInfos().Values.Where(info => info.m_Item.IsRoof()
+                                                                                                                                                                                || info.m_Item.IsShower()
+                                                                                                                                                                                || info.m_Item.IsLadder()
+                                                                                                                                                                                || info.m_Item.IsFreeHandsLadder()
+                                                                                                                                                                                || info.IsConstruction()
+                                                                                                                                                                                || info.IsShelter()
+                                                                                                                                                                                || info.IsStand()
+                                                                                                                                                                                || info.IsWall()
+                                                                                                                                                                                || ItemInfo.IsSmoker(info.m_ID)).ToList();
+                    if (UnlockedConstructionsItemInfos != null)
                     {
-                        itemsManager.UnlockItemInNotepad(constructionItemInfo.m_ID);
-                        itemsManager.UnlockItemInfo(constructionItemInfo.m_ID.ToString());
-                        ShowHUDInfoLog(constructionItemInfo.m_ID.ToString(), "HUD_InfoLog_NewEntry");
+                        foreach (ItemInfo constructionItemInfo in UnlockedConstructionsItemInfos)
+                        {
+                            itemsManager.UnlockItemInNotepad(constructionItemInfo.m_ID);
+                            itemsManager.UnlockItemInfo(constructionItemInfo.m_ID.ToString());
+                            ShowHUDInfoLog(constructionItemInfo.m_ID.ToString(), "HUD_InfoLog_NewEntry");
+                        }
                     }
                     HasUnlockedConstructions = true;
                 }
