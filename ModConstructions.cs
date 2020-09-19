@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -26,6 +27,12 @@ namespace ModConstructions
         private static HUDManager hUDManager;
 
         private static Item SelectedItemToDestroy;
+
+        public static string OnlyForSinglePlayerOrHostMessage()
+            => $"\n<color=#ffff00>DELETE option</color> is only available for single player or when host.\nHost can activate using <b>ModManager</b>.";
+
+        public static string AlreadyUnlockedConstructions()
+             => $"\n<color=#ffff00>All constructions were already unlocked!</color>";
 
         public static List<ItemInfo> ConstructionItemInfos = new List<ItemInfo>();
 
@@ -158,8 +165,8 @@ namespace ModConstructions
 
                 using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    GUILayout.Label("Construction blueprints", GUI.skin.label);
-                    if (GUILayout.Button("Unlock constructions", GUI.skin.button))
+                    GUILayout.Label("All constructions.", GUI.skin.label);
+                    if (GUILayout.Button("Unlock blueprints", GUI.skin.button))
                     {
                         OnClickUnlockConstructionsButton();
                         CloseWindow();
@@ -183,8 +190,7 @@ namespace ModConstructions
             {
                 using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    GUILayout.Label("Use F8 to instantly finish", GUI.skin.label);
-                    UseOptionF8 = GUILayout.Toggle(UseOptionF8, string.Empty, GUI.skin.toggle);
+                    UseOptionF8 = GUILayout.Toggle(UseOptionF8, "Use F8 to instantly finish constructions.", GUI.skin.toggle);
                 }
             }
             else
@@ -214,22 +220,30 @@ namespace ModConstructions
         {
             try
             {
-                if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo))
+                if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
                 {
-                    GameObject go = hitInfo.collider.transform.gameObject;
-                    if (go != null)
+                    if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo))
                     {
-                        Item item = go.GetComponent<Item>();
-                        if (item != null)
+                        GameObject go = hitInfo.collider.transform.gameObject;
+                        if (go != null)
                         {
-                            if (!item.IsPlayer() && !item.IsAI() && !item.IsHumanAI())
+                            Item item = go.GetComponent<Item>();
+                            if (item != null)
                             {
-                                SelectedItemToDestroy = item;
-                                var deleteYesNo = GreenHellGame.GetYesNoDialog();
-                                deleteYesNo.Show(this, Enums.DialogWindowType.YesNo, $"Destroy {item.m_Info.GetNameToDisplayLocalized()}", "Destroy?", true);
+                                if (!item.IsPlayer() && !item.IsAI() && !item.IsHumanAI())
+                                {
+                                    CursorManager.Get().ShowCursor(true, true);
+                                    SelectedItemToDestroy = item;
+                                    YesNoDialog deleteYesNo = GreenHellGame.GetYesNoDialog();
+                                    deleteYesNo.Show(this, DialogWindowType.YesNo, $"{ModName} Info", $"Destroy {item.m_Info.GetNameToDisplayLocalized()}?", false);
+                                }
                             }
                         }
                     }
+                }
+                else
+                {
+                    ShowHUDBigInfo(OnlyForSinglePlayerOrHostMessage(), $"{ModName} Info", HUDInfoLogTextureType.Count.ToString());
                 }
             }
             catch (Exception exc)
@@ -261,7 +275,7 @@ namespace ModConstructions
                 }
                 else
                 {
-                    ShowHUDBigInfo("All constructions were already unlocked!", $"{ModName} Info", HUDInfoLogTextureType.Count.ToString());
+                    ShowHUDBigInfo(AlreadyUnlockedConstructions(), $"{ModName} Info", HUDInfoLogTextureType.Count.ToString());
                 }
             }
             catch (Exception exc)
@@ -277,11 +291,13 @@ namespace ModConstructions
                 itemsManager.AddItemToDestroy(SelectedItemToDestroy);
                 ShowHUDBigInfo($"{SelectedItemToDestroy.m_Info.GetNameToDisplayLocalized()} destroyed!", $"{ModName} Info", HUDInfoLogTextureType.Count.ToString());
             }
+            EnableCursor(false);
         }
 
         public void OnNoFromDialog()
         {
             SelectedItemToDestroy = null;
+            EnableCursor(false);
         }
 
         public void OnOkFromDialog()
