@@ -29,24 +29,32 @@ namespace ModConstructions
         private static Item SelectedItemToDestroy;
 
         public static string OnlyForSinglePlayerOrHostMessage()
-            => $"\n<color=#ffff00>DELETE option</color> is only available for single player or when host.\nHost can activate using <b>ModManager</b>.";
+            => $"\n<color=#{ColorUtility.ToHtmlStringRGBA(Color.yellow)}>DELETE option</color> is only available for single player or when host.\nHost can activate using <b>ModManager</b>.";
 
         public static string AlreadyUnlockedConstructions()
-             => $"\n<color=#ffff00>All constructions were already unlocked!</color>";
+             => $"\n<color=#{ColorUtility.ToHtmlStringRGBA(Color.yellow)}>All constructions were already unlocked!</color>";
 
         public static List<ItemInfo> ConstructionItemInfos = new List<ItemInfo>();
 
         public static bool HasUnlockedConstructions { get; private set; }
 
-        public static bool HasUnlockedRestingPlaces { get; private set; }
-
-        private bool showUI = false;
+        private bool ShowUI = false;
 
         public bool UseOptionF8 { get; private set; }
 
-        public bool IsModActiveForMultiplayer => FindObjectOfType(typeof(ModManager.ModManager)) != null && ModManager.ModManager.AllowModsForMultiplayer;
+        private bool _isActiveForMultiplayer;
+        public bool IsModActiveForMultiplayer
+        {
+            get => _isActiveForMultiplayer;
+            set => _isActiveForMultiplayer = FindObjectOfType(typeof(ModManager.ModManager)) != null && ModManager.ModManager.AllowModsForMultiplayer;
+        }
 
-        public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
+        private bool _isActiveForSingleplayer;
+        public bool IsModActiveForSingleplayer
+        {
+            get => _isActiveForSingleplayer;
+            set => _isActiveForSingleplayer = ReplTools.AmIMaster();
+        }
 
         public ModConstructions()
         {
@@ -67,8 +75,6 @@ namespace ModConstructions
 
         public void ShowHUDBigInfo(string text, string header, string textureName)
         {
-            HUDManager hUDManager = HUDManager.Get();
-
             HUDBigInfo hudBigInfo = (HUDBigInfo)hUDManager.GetHUD(typeof(HUDBigInfo));
             HUDBigInfoData hudBigInfoData = new HUDBigInfoData
             {
@@ -103,13 +109,13 @@ namespace ModConstructions
         {
             if (Input.GetKeyDown(KeyCode.Home))
             {
-                if (!showUI)
+                if (!ShowUI)
                 {
                     InitData();
                     EnableCursor(true);
                 }
                 ToggleShowUI();
-                if (!showUI)
+                if (!ShowUI)
                 {
                     EnableCursor(false);
                 }
@@ -123,12 +129,12 @@ namespace ModConstructions
 
         private void ToggleShowUI()
         {
-            showUI = !showUI;
+            ShowUI = !ShowUI;
         }
 
         private void OnGUI()
         {
-            if (showUI)
+            if (ShowUI)
             {
                 InitData();
                 InitSkinUI();
@@ -158,7 +164,7 @@ namespace ModConstructions
         {
             using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
             {
-                if (GUI.Button(new Rect(430f, 0f, 20f, 20f), "x", GUI.skin.button))
+                if (GUI.Button(new Rect(430f, 0f, 20f, 20f), "X", GUI.skin.button))
                 {
                     CloseWindow();
                 }
@@ -173,18 +179,18 @@ namespace ModConstructions
                     }
                 }
 
-                CreateF8Option();
+                InstantFinishConstructionsOption();
             }
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
         }
 
         private void CloseWindow()
         {
-            showUI = false;
+            ShowUI = false;
             EnableCursor(false);
         }
 
-        private void CreateF8Option()
+        private void InstantFinishConstructionsOption()
         {
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
@@ -197,7 +203,7 @@ namespace ModConstructions
             {
                 using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
-                    GUILayout.Label("F8 option", GUI.skin.label);
+                    GUILayout.Label("F8 option to instantly finish constructions", GUI.skin.label);
                     GUILayout.Label("is only for single player or when host", GUI.skin.label);
                     GUILayout.Label("Host can activate using ModManager.", GUI.skin.label);
                 }
@@ -232,7 +238,7 @@ namespace ModConstructions
                             {
                                 if (!item.IsPlayer() && !item.IsAI() && !item.IsHumanAI())
                                 {
-                                    CursorManager.Get().ShowCursor(true, true);
+                                    EnableCursor(true);
                                     SelectedItemToDestroy = item;
                                     YesNoDialog deleteYesNo = GreenHellGame.GetYesNoDialog();
                                     deleteYesNo.Show(this, DialogWindowType.YesNo, $"{ModName} Info", $"Destroy {item.m_Info.GetNameToDisplayLocalized()}?", false);
@@ -266,9 +272,12 @@ namespace ModConstructions
                     {
                         foreach (ItemInfo constructionItemInfo in ConstructionItemInfos)
                         {
-                            itemsManager.UnlockItemInNotepad(constructionItemInfo.m_ID);
-                            itemsManager.UnlockItemInfo(constructionItemInfo.m_ID.ToString());
-                            ShowHUDInfoLog(constructionItemInfo.m_ID.ToString(), "HUD_InfoLog_NewEntry");
+                            if (constructionItemInfo.m_ID != ItemID.safezone_totem && constructionItemInfo.m_ID != ItemID.token_stand )
+                            {
+                                itemsManager.UnlockItemInNotepad(constructionItemInfo.m_ID);
+                                itemsManager.UnlockItemInfo(constructionItemInfo.m_ID.ToString());
+                                ShowHUDInfoLog(constructionItemInfo.m_ID.ToString(), "HUD_InfoLog_NewEntry");
+                            }
                         }
                     }
                     HasUnlockedConstructions = true;
@@ -289,10 +298,15 @@ namespace ModConstructions
             if (SelectedItemToDestroy != null)
             {
                 itemsManager.AddItemToDestroy(SelectedItemToDestroy);
-                ShowHUDBigInfo($"{SelectedItemToDestroy.m_Info.GetNameToDisplayLocalized()} destroyed!", $"{ModName} Info", HUDInfoLogTextureType.Count.ToString());
+                ShowHUDBigInfo(
+                    ItemDestroyedMessage(SelectedItemToDestroy),
+                    $"{ModName} Info",
+                    HUDInfoLogTextureType.Count.ToString());
             }
             EnableCursor(false);
         }
+
+        private string ItemDestroyedMessage(Item selectedItemToDestroy) => $"<color=#{ColorUtility.ToHtmlStringRGBA(Color.red)}>System</color>:\n{selectedItemToDestroy.m_Info.GetNameToDisplayLocalized()} destroyed!";
 
         public void OnNoFromDialog()
         {
@@ -302,12 +316,13 @@ namespace ModConstructions
 
         public void OnOkFromDialog()
         {
-
+            OnYesFromDialog();
         }
 
         public void OnCloseDialog()
         {
-
+            SelectedItemToDestroy = null;
+            EnableCursor(false);
         }
     }
 }
