@@ -18,7 +18,7 @@ namespace ModConstructions
 
         private static readonly string ModName = nameof(ModConstructions);
 
-        public Rect ModConstructionsScreen = new Rect(500f, 500f, 450f, 150f);
+        public static Rect ModConstructionsScreen = new Rect(500f, 500f, 450f, 150f);
 
         private static ItemsManager itemsManager;
 
@@ -40,21 +40,10 @@ namespace ModConstructions
 
         private bool ShowUI = false;
 
-        public bool UseOptionF8 { get; private set; }
+        public bool InstantFinishConstructionsOption { get; private set; }
 
-        private bool _isActiveForMultiplayer;
-        public bool IsModActiveForMultiplayer
-        {
-            get => _isActiveForMultiplayer;
-            set => _isActiveForMultiplayer = FindObjectOfType(typeof(ModManager.ModManager)) != null && ModManager.ModManager.AllowModsForMultiplayer;
-        }
-
-        private bool _isActiveForSingleplayer;
-        public bool IsModActiveForSingleplayer
-        {
-            get => _isActiveForSingleplayer;
-            set => _isActiveForSingleplayer = ReplTools.AmIMaster();
-        }
+        public bool IsModActiveForMultiplayer => FindObjectOfType(typeof(ModManager.ModManager)) != null && ModManager.ModManager.AllowModsForMultiplayer;
+        public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
 
         public ModConstructions()
         {
@@ -179,7 +168,7 @@ namespace ModConstructions
                     }
                 }
 
-                InstantFinishConstructionsOption();
+                InstantFinishConstructionsOptionButton();
             }
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
         }
@@ -190,20 +179,20 @@ namespace ModConstructions
             EnableCursor(false);
         }
 
-        private void InstantFinishConstructionsOption()
+        private void InstantFinishConstructionsOptionButton()
         {
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
                 using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    UseOptionF8 = GUILayout.Toggle(UseOptionF8, "Use F8 to instantly finish constructions.", GUI.skin.toggle);
+                    InstantFinishConstructionsOption = GUILayout.Toggle(InstantFinishConstructionsOption, $"Use F8 to instantly finish any constructions?", GUI.skin.toggle);
                 }
             }
             else
             {
                 using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
-                    GUILayout.Label("F8 option to instantly finish constructions", GUI.skin.label);
+                    GUILayout.Label("Use F8 to instantly finish any constructions", GUI.skin.label);
                     GUILayout.Label("is only for single player or when host", GUI.skin.label);
                     GUILayout.Label("Host can activate using ModManager.", GUI.skin.label);
                 }
