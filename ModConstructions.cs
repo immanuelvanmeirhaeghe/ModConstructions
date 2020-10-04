@@ -42,7 +42,7 @@ namespace ModConstructions
 
         public bool InstantFinishConstructionsOption { get; private set; }
 
-        public bool IsModActiveForMultiplayer => FindObjectOfType(typeof(ModManager.ModManager)) != null && ModManager.ModManager.AllowModsForMultiplayer;
+        public bool IsModActiveForMultiplayer { get; private set; }
         public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
 
         public ModConstructions()
@@ -93,6 +93,26 @@ namespace ModConstructions
                 player.UnblockInspection();
             }
         }
+
+        public void Start()
+        {
+            ModManager.ModManager.onPermissionValueChanged += ModManager_onPermissionValueChanged;
+        }
+
+        private void ModManager_onPermissionValueChanged(bool optionValue)
+        {
+            IsModActiveForMultiplayer = optionValue;
+            ShowHUDBigInfo(
+                          (optionValue ?
+                            HUDBigInfoMessage($"<color=#{ColorUtility.ToHtmlStringRGBA(Color.green)}>Permission to use mods for multiplayer was granted!</color>")
+                            : HUDBigInfoMessage($"<color=#{ColorUtility.ToHtmlStringRGBA(Color.yellow)}>Permission to use mods for multiplayer was revoked!</color>")),
+                           $"{ModName} Info",
+                           HUDInfoLogTextureType.Count.ToString());
+        }
+
+        private static string HUDBigInfoMessage(string message) => $"<color=#{ColorUtility.ToHtmlStringRGBA(Color.red)}>System</color>\n{message}";
+
+        private string ItemDestroyedMessage(Item selectedItemToDestroy) => $"<color=#{ColorUtility.ToHtmlStringRGBA(Color.red)}>System</color>:\n{selectedItemToDestroy.m_Info.GetNameToDisplayLocalized()} destroyed!";
 
         private void Update()
         {
@@ -294,8 +314,6 @@ namespace ModConstructions
             }
             EnableCursor(false);
         }
-
-        private string ItemDestroyedMessage(Item selectedItemToDestroy) => $"<color=#{ColorUtility.ToHtmlStringRGBA(Color.red)}>System</color>:\n{selectedItemToDestroy.m_Info.GetNameToDisplayLocalized()} destroyed!";
 
         public void OnNoFromDialog()
         {
