@@ -328,7 +328,6 @@ namespace ModConstructions
 
         public void OnCloseDialog()
         {
-            SelectedItemToDestroy = null;
             EnableCursor(false);
         }
     }
