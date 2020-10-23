@@ -306,6 +306,7 @@ namespace ModConstructions
         {
             if (SelectedItemToDestroy != null)
             {
+                SelectedItemToDestroy.TakeDamage(new DamageInfo { m_Damage = 100f, m_CriticalHit = true, m_DamageType = DamageType.Melee });
                 itemsManager.AddItemToDestroy(SelectedItemToDestroy);
                 ShowHUDBigInfo(
                     ItemDestroyedMessage(SelectedItemToDestroy),
