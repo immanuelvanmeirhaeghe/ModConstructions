@@ -18,7 +18,7 @@ namespace ModConstructions
 
         private static readonly string ModName = nameof(ModConstructions);
 
-        public static Rect ModConstructionsScreen = new Rect(500f, 500f, 450f, 150f);
+        public static Rect ModConstructionsScreen = new Rect(Screen.width / 30f, Screen.height / 30f, 450f, 150f);
 
         private static ItemsManager itemsManager;
 
@@ -173,24 +173,34 @@ namespace ModConstructions
         {
             using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
             {
-                if (GUI.Button(new Rect(430f, 0f, 20f, 20f), "X", GUI.skin.button))
-                {
-                    CloseWindow();
-                }
+                ScreenMenuBox();
 
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("All constructions.", GUI.skin.label);
-                    if (GUILayout.Button("Unlock blueprints", GUI.skin.button))
-                    {
-                        OnClickUnlockConstructionsButton();
-                        CloseWindow();
-                    }
-                }
+                UnlockConstructionsBox();
 
-                InstantFinishConstructionsOptionButton();
+                InstantFinishOptionBox();
             }
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
+        }
+
+        private void UnlockConstructionsBox()
+        {
+            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            {
+                GUILayout.Label("All constructions.", GUI.skin.label);
+                if (GUILayout.Button("Unlock blueprints", GUI.skin.button))
+                {
+                    OnClickUnlockConstructionsButton();
+                    CloseWindow();
+                }
+            }
+        }
+
+        private void ScreenMenuBox()
+        {
+            if (GUI.Button(new Rect(ModConstructionsScreen.width - 20f, 0f, 20f, 20f), "X", GUI.skin.button))
+            {
+                CloseWindow();
+            }
         }
 
         private void CloseWindow()
@@ -199,7 +209,7 @@ namespace ModConstructions
             EnableCursor(false);
         }
 
-        private void InstantFinishConstructionsOptionButton()
+        private void InstantFinishOptionBox()
         {
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
@@ -227,7 +237,7 @@ namespace ModConstructions
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{ModName}.{ModName}:{nameof(OnClickUnlockConstructionsButton)}] throws exception: {exc.Message}");
+                ModAPI.Log.Write($"[{ModName}:{nameof(OnClickUnlockConstructionsButton)}] throws exception:\n{exc.Message}");
             }
         }
 
@@ -263,7 +273,7 @@ namespace ModConstructions
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{ModName}.{ModName}:{nameof(DestroyMouseTarget)}] throws exception: {exc.Message}");
+                ModAPI.Log.Write($"[{ModName}:{nameof(DestroyMouseTarget)}] throws exception:\n{exc.Message}");
             }
         }
 
@@ -298,7 +308,7 @@ namespace ModConstructions
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{ModName}.{ModName}:{nameof(UnlockAllConstructions)}] throws exception: {exc.Message}");
+                ModAPI.Log.Write($"[{ModName}:{nameof(UnlockAllConstructions)}] throws exception:\n{exc.Message}");
             }
         }
 
