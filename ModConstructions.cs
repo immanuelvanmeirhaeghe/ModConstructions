@@ -373,11 +373,13 @@ namespace ModConstructions
                 if (SelectedGameObjectToDestroy != null)
                 {
                     SelectedItemToDestroy = SelectedGameObjectToDestroy.GetComponent<Item>();
-                    SelectedGameObjectToDestroyName = SelectedItemToDestroy != null ? SelectedItemToDestroy.m_Info.GetNameToDisplayLocalized() : GreenHellGame.Instance.GetLocalization().Get(SelectedGameObjectToDestroy.name);
+                    SelectedGameObjectToDestroyName = SelectedItemToDestroy != null && SelectedItemToDestroy.m_Info != null
+                                                                                                    ? SelectedItemToDestroy.m_Info.GetNameToDisplayLocalized()
+                                                                                                    : GreenHellGame.Instance.GetLocalization().Get(SelectedGameObjectToDestroy.name);
 
                     if (SelectedItemToDestroy != null || IsDestroyable(SelectedGameObjectToDestroy))
                     {
-                        if (!SelectedItemToDestroy.IsPlayer() && !SelectedItemToDestroy.IsAI() && !SelectedItemToDestroy.IsHumanAI())
+                        if (SelectedItemToDestroy != null && !SelectedItemToDestroy.IsPlayer() && !SelectedItemToDestroy.IsAI() && !SelectedItemToDestroy.IsHumanAI())
                         {
                             LocalItemsManager.AddItemToDestroy(SelectedItemToDestroy);
                         }
@@ -411,10 +413,10 @@ namespace ModConstructions
                 {
                     return false;
                 }
-               string SelectedGameObjectName = go.name.ToLower();
+                SelectedGameObjectToDestroyName = go.name.ToLower();
                 return (
-                    SelectedGameObjectName.Contains("tree") || SelectedGameObjectName.Contains("plant") || SelectedGameObjectName.Contains("leaf")
-                     || SelectedGameObjectName.Contains("barrel") || SelectedGameObjectName.Contains("roof") || SelectedGameObjectName.Contains("platform")
+                    SelectedGameObjectToDestroyName.Contains("tree") || SelectedGameObjectToDestroyName.Contains("plant") || SelectedGameObjectToDestroyName.Contains("leaf")
+                     || SelectedGameObjectToDestroyName.Contains("barrel") || SelectedGameObjectToDestroyName.Contains("roof") || SelectedGameObjectToDestroyName.Contains("platform")
                     );
             }
             catch (Exception exc)
