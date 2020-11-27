@@ -17,31 +17,34 @@ namespace ModConstructions
         private static ModConstructions Instance;
 
         private static readonly string ModName = nameof(ModConstructions);
-        private static readonly float ModScreenTotalWidth = 850f;
+        private static readonly float ModScreenTotalWidth = 450f;
+        private static readonly float ModScreenTotalHeight = 150f;
         private static readonly float ModScreenMaxHeight = 500f;
-        private static readonly float ModScreenMinHeight = 150f;
+        private static readonly float ModScreenMinHeight = 30f;
 
         private static bool IsMinimized { get; set; } = false;
-        public static Rect ModConstructionsScreen = new Rect(Screen.width / 30f, Screen.height / 30f, ModScreenTotalWidth, ModScreenMinHeight);
+        public static Rect ModConstructionsScreen = new Rect(Screen.width / 30f, Screen.height / 30f, ModScreenTotalWidth, ModScreenTotalHeight);
         private bool ShowUI = false;
         private static ItemsManager LocalItemsManager;
         private static Player LocalPlayer;
         private static HUDManager LocalHUDManager;
 
         public static Item SelectedItemToDestroy = null;
-        public static GameObject SelectedObjectToDestroy = null;
+        public static GameObject SelectedGameObjectToDestroy = null;
         public static List<ItemInfo> ConstructionItemInfos = new List<ItemInfo>();
 
         public static string OnlyForSinglePlayerOrHostMessage() => $"Only available for single player or when host. Host can activate using ModManager.";
-        public static string AlreadyUnlockedConstructions() => $"All constructions were already unlocked!";
+        public static string AlreadyUnlockedConstructions() => $"All blueprints were already unlocked!";
         public static string ItemDestroyedMessage(string item) => $"{item} destroyed!";
         public static string NoItemSelectedMessage() => $"No item selected to destroy!";
+        public static string SelectedItemMessage(string item) => $"selected item {item}";
         public static string PermissionChangedMessage(string permission) => $"Permission to use mods and cheats in multiplayer was {permission}!";
         public static string HUDBigInfoMessage(string message, Color? headcolor = null)
             => $"<color=#{ (headcolor != null ? ColorUtility.ToHtmlStringRGBA(headcolor.Value) : ColorUtility.ToHtmlStringRGBA(Color.red))  }>{ModName} Info</color>\n{message}";
 
         public static bool HasUnlockedConstructions { get; private set; }
         public bool InstantFinishConstructionsOption { get; private set; }
+        public bool DestroyTargetOption { get; private set; }
 
         public bool IsModActiveForMultiplayer { get; private set; }
         public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
@@ -166,7 +169,7 @@ namespace ModConstructions
 
         private void InitModConstructionsScreen(int windowID)
         {
-            using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
+            using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box, GUILayout.ExpandHeight(true), GUILayout.MaxHeight(ModScreenMaxHeight)))
             {
                 ScreenMenuBox();
 
@@ -181,10 +184,10 @@ namespace ModConstructions
         {
             using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
             {
-                GUILayout.Label("All constructions.", GUI.skin.label);
+                GUILayout.Label("To unlock all constructions info, click [Unlock blueprints]", GUI.skin.label);
                 if (GUILayout.Button("Unlock blueprints", GUI.skin.button))
                 {
-                    OnClickUnlockConstructionsButton();
+                    OnClickUnlockBlueprintsButton();
                     CloseWindow();
                 }
             }
@@ -207,12 +210,12 @@ namespace ModConstructions
         {
             if (!IsMinimized)
             {
-                ModConstructionsScreen.Set(ModConstructionsScreen.x, ModConstructionsScreen.y, ModScreenTotalWidth, 30f);
+                ModConstructionsScreen.Set(ModConstructionsScreen.x, ModConstructionsScreen.y, ModScreenTotalWidth, ModScreenMinHeight);
                 IsMinimized = true;
             }
             else
             {
-                ModConstructionsScreen.Set(ModConstructionsScreen.x, ModConstructionsScreen.y, ModScreenTotalWidth, ModScreenMinHeight);
+                ModConstructionsScreen.Set(ModConstructionsScreen.x, ModConstructionsScreen.y, ModScreenTotalWidth, ModScreenTotalHeight);
                 IsMinimized = false;
             }
         }
@@ -227,14 +230,15 @@ namespace ModConstructions
         {
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                using (var optionsScope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
-                    InstantFinishConstructionsOption = GUILayout.Toggle(InstantFinishConstructionsOption, $"Use F8 to instantly finish any constructions?", GUI.skin.toggle);
+                    InstantFinishConstructionsOption = GUILayout.Toggle(InstantFinishConstructionsOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
+                    DestroyTargetOption = GUILayout.Toggle(DestroyTargetOption, $"Use [DELETE] to destroy target?", GUI.skin.toggle);
                 }
             }
             else
             {
-                using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
+                using (var infoScope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
                     GUI.color = Color.yellow;
                     GUILayout.Label(OnlyForSinglePlayerOrHostMessage(), GUI.skin.label);
@@ -243,7 +247,7 @@ namespace ModConstructions
             }
         }
 
-        private void OnClickUnlockConstructionsButton()
+        private void OnClickUnlockBlueprintsButton()
         {
             try
             {
@@ -251,7 +255,7 @@ namespace ModConstructions
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{ModName}:{nameof(OnClickUnlockConstructionsButton)}] throws exception:\n{exc.Message}");
+                ModAPI.Log.Write($"[{ModName}:{nameof(OnClickUnlockBlueprintsButton)}] throws exception:\n{exc.Message}");
             }
         }
 
@@ -261,9 +265,12 @@ namespace ModConstructions
             {
                 if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
                 {
-                    if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo))
+                    if (DestroyTargetOption)
                     {
-                        DestroyOnHit(hitInfo);
+                        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo))
+                        {
+                            DestroyOnHit(hitInfo);
+                        }
                     }
                 }
                 else
@@ -286,7 +293,7 @@ namespace ModConstructions
                     GameObject go = hitInfo.collider.transform.gameObject;
                     if (go != null)
                     {
-                        SelectedObjectToDestroy = go;
+                        SelectedGameObjectToDestroy = go.gameObject;
                         ShowConfirmDestroyDialog();
                     }
                 }
@@ -304,9 +311,9 @@ namespace ModConstructions
         private void ShowConfirmDestroyDialog()
         {
             EnableCursor(true);
-            string description = SelectedObjectToDestroy != null ? SelectedObjectToDestroy.name : $"item";
+            string description = SelectedGameObjectToDestroy != null ? SelectedGameObjectToDestroy.name : $"item";
             YesNoDialog destroyYesNoDialog = GreenHellGame.GetYesNoDialog();
-            destroyYesNoDialog.Show(this, DialogWindowType.YesNo, $"{ModName} Info", $"Destroy {description}?", true);
+            destroyYesNoDialog.Show(this, DialogWindowType.YesNo, $"{ModName} Info", $"Are you sure you want to destroy {description}?", true);
         }
 
         public void UnlockAllConstructions()
@@ -335,7 +342,7 @@ namespace ModConstructions
                 }
                 else
                 {
-                    ShowHUDBigInfo(AlreadyUnlockedConstructions());
+                    ShowHUDBigInfo(HUDBigInfoMessage(AlreadyUnlockedConstructions(), Color.yellow));
                 }
             }
             catch (Exception exc)
@@ -354,10 +361,9 @@ namespace ModConstructions
         {
             try
             {
-                if (SelectedObjectToDestroy != null)
+                if (SelectedGameObjectToDestroy != null)
                 {
-                    ItemInfo selectedItemInfo = LocalItemsManager.GetInfo(SelectedObjectToDestroy.name);
-                    SelectedItemToDestroy = selectedItemInfo != null ? selectedItemInfo.m_Item : SelectedObjectToDestroy.GetComponent<Item>();
+                    SelectedItemToDestroy = SelectedGameObjectToDestroy.GetComponent<Item>();
                     if (SelectedItemToDestroy != null)
                     {
                         if (!SelectedItemToDestroy.IsPlayer() && !SelectedItemToDestroy.IsAI() && !SelectedItemToDestroy.IsHumanAI())
@@ -365,6 +371,10 @@ namespace ModConstructions
                             LocalItemsManager.AddItemToDestroy(SelectedItemToDestroy);
                             ShowHUDBigInfo(HUDBigInfoMessage(ItemDestroyedMessage(SelectedItemToDestroy.m_Info.GetNameToDisplayLocalized()), Color.green));
                         }
+                    }
+                    else
+                    {
+                        ShowHUDBigInfo(HUDBigInfoMessage(SelectedItemMessage(SelectedGameObjectToDestroy.name), Color.yellow));
                     }
                 }
                 else
