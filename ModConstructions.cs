@@ -413,7 +413,7 @@ namespace ModConstructions
                 {
                     return false;
                 }
-                return DestroyableObjectNames.Contains(go.name.ToLower());
+                return DestroyableObjectNames.Any(destroyableObjectName => go.name.ToLower().Contains(destroyableObjectName));
             }
             catch (Exception exc)
             {
