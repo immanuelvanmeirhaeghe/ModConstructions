@@ -26,8 +26,8 @@ namespace ModConstructions
         private static readonly string ModName = nameof(ModConstructions);
         private static readonly float ModScreenTotalWidth = 450f;
         private static readonly float ModScreenTotalHeight = 150f;
-        private static readonly float ModScreenMaxHeight = 180f;
         private static readonly float ModScreenMinHeight = 30f;
+        private static readonly float ModScreenMaxHeight = 180f;
 
         private static bool IsMinimized { get; set; } = false;
         public static Rect ModConstructionsScreen = new Rect(Screen.width / 30f, Screen.height / 30f, ModScreenTotalWidth, ModScreenTotalHeight);
@@ -38,6 +38,7 @@ namespace ModConstructions
 
         public static Item SelectedItemToDestroy = null;
         public static string SelectedGameObjectToDestroyName = string.Empty;
+        public static List<string> DestroyableObjectNames = new List<string> { "tree", "plant", "leaf", "stone", "barrel", "roof", "platform", "bridge" };
         public static GameObject SelectedGameObjectToDestroy = null;
         public static List<ItemInfo> ConstructionItemInfos = new List<ItemInfo>();
 
@@ -45,7 +46,6 @@ namespace ModConstructions
         public static string AlreadyUnlockedConstructions() => $"All blueprints were already unlocked!";
         public static string DestroyedMessage(string item) => $"{item} destroyed!";
         public static string NoItemSelectedMessage() => $"No item selected to destroy!";
-        public static string SelectedItemMessage(string item) => $"selected item {item}";
         public static string NotDestroyedMessage(string item) => $"Cannot destroy {item}!";
         public static string PermissionChangedMessage(string permission) => $"Permission to use mods and cheats in multiplayer was {permission}!";
         public static string HUDBigInfoMessage(string message, MessageType messageType, Color? headcolor = null)
@@ -139,7 +139,7 @@ namespace ModConstructions
 
             if (Input.GetKeyDown(KeyCode.Delete))
             {
-                DestroyMouseTarget();
+                DestroyTarget();
             }
         }
 
@@ -178,7 +178,7 @@ namespace ModConstructions
 
         private void InitModConstructionsScreen(int windowID)
         {
-            using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box, GUILayout.ExpandHeight(true), GUILayout.MaxHeight(ModScreenMaxHeight)))
+            using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box, GUILayout.ExpandHeight(true), GUILayout.MinHeight(ModScreenMinHeight), GUILayout.MaxHeight(ModScreenMaxHeight)))
             {
                 ScreenMenuBox();
 
@@ -191,9 +191,9 @@ namespace ModConstructions
 
         private void UnlockConstructionsBox()
         {
-            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            using (var constructionsScope = new GUILayout.HorizontalScope(GUI.skin.box))
             {
-                GUILayout.Label("To unlock all constructions info, click [Unlock blueprints]", GUI.skin.label);
+                GUILayout.Label("click to unlock all constructions info: ", GUI.skin.label);
                 if (GUILayout.Button("Unlock blueprints", GUI.skin.button))
                 {
                     OnClickUnlockBlueprintsButton();
@@ -224,7 +224,7 @@ namespace ModConstructions
             }
             else
             {
-                ModConstructionsScreen.Set(ModConstructionsScreen.x, ModConstructionsScreen.y, ModScreenTotalWidth, ModScreenTotalHeight);
+                ModConstructionsScreen.Set(ModConstructionsScreen.x, ModConstructionsScreen.y, ModScreenTotalWidth, ModScreenMaxHeight);
                 IsMinimized = false;
             }
         }
@@ -239,7 +239,7 @@ namespace ModConstructions
         {
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
-                using (var optionsScope = new GUILayout.VerticalScope(GUI.skin.box))
+                using (var optionScope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
                     InstantFinishConstructionsOption = GUILayout.Toggle(InstantFinishConstructionsOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
                     DestroyTargetOption = GUILayout.Toggle(DestroyTargetOption, $"Use [DELETE] to destroy target?", GUI.skin.toggle);
@@ -268,7 +268,7 @@ namespace ModConstructions
             }
         }
 
-        public void DestroyMouseTarget()
+        public void DestroyTarget()
         {
             try
             {
@@ -289,7 +289,7 @@ namespace ModConstructions
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{ModName}:{nameof(DestroyMouseTarget)}] throws exception:\n{exc.Message}");
+                ModAPI.Log.Write($"[{ModName}:{nameof(DestroyTarget)}] throws exception:\n{exc.Message}");
             }
         }
 
@@ -320,9 +320,9 @@ namespace ModConstructions
         private void ShowConfirmDestroyDialog()
         {
             EnableCursor(true);
-            string description = SelectedGameObjectToDestroy != null ? SelectedGameObjectToDestroy.name : $"item";
+            string description = $"Are you sure you want to destroy selected { (SelectedGameObjectToDestroy != null ? SelectedGameObjectToDestroy.name : "item") }?";
             YesNoDialog destroyYesNoDialog = GreenHellGame.GetYesNoDialog();
-            destroyYesNoDialog.Show(this, DialogWindowType.YesNo, $"{ModName} Info", $"Are you sure you want to destroy {description}?", true);
+            destroyYesNoDialog.Show(this, DialogWindowType.YesNo, $"{ModName} Info", description, true);
         }
 
         public void UnlockAllConstructions()
@@ -413,11 +413,7 @@ namespace ModConstructions
                 {
                     return false;
                 }
-                SelectedGameObjectToDestroyName = go.name.ToLower();
-                return (
-                    SelectedGameObjectToDestroyName.Contains("tree") || SelectedGameObjectToDestroyName.Contains("plant") || SelectedGameObjectToDestroyName.Contains("leaf")
-                     || SelectedGameObjectToDestroyName.Contains("barrel") || SelectedGameObjectToDestroyName.Contains("roof") || SelectedGameObjectToDestroyName.Contains("platform")
-                    );
+                return DestroyableObjectNames.Contains(go.name.ToLower());
             }
             catch (Exception exc)
             {
