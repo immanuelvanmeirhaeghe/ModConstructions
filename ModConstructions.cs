@@ -24,13 +24,13 @@ namespace ModConstructions
         private static ModConstructions Instance;
 
         private static readonly string ModName = nameof(ModConstructions);
-        private static readonly float ModScreenTotalWidth = 450f;
+        private static readonly float ModScreenTotalWidth = 500f;
         private static readonly float ModScreenTotalHeight = 150f;
         private static readonly float ModScreenMinHeight = 30f;
         private static readonly float ModScreenMaxHeight = 180f;
 
         private static bool IsMinimized { get; set; } = false;
-        public static Rect ModConstructionsScreen = new Rect(Screen.width / 30f, Screen.height / 30f, ModScreenTotalWidth, ModScreenTotalHeight);
+        public static Rect ModConstructionsScreen = new Rect(Screen.width / ModScreenMinHeight, Screen.height / ModScreenMinHeight, ModScreenTotalWidth, ModScreenTotalHeight);
         private bool ShowUI = false;
         private static ItemsManager LocalItemsManager;
         private static Player LocalPlayer;
@@ -39,7 +39,13 @@ namespace ModConstructions
         public static Item SelectedItemToDestroy = null;
         public static GameObject SelectedGameObjectToDestroy = null;
         public static string SelectedGameObjectToDestroyName = string.Empty;
-        public static List<string> DestroyableObjectNames { get; set; } = new List<string> { "tree", "plant", "leaf", "stone", "cardboard", "tarp", "oil", "cartel", "military", "tribal", "roof", "floor", "bridge", "chair", "stove", "barrel", "tank", "hut", "frame" };
+        public static List<string> DestroyableObjectNames { get; set; } = new List<string> {
+                                                                                                                                        "tree", "plant", "leaf", "stone", "bag",
+                                                                                                                                        "metal", "board", "cardboard", "plank", "plastic", "tarp", "oil",
+                                                                                                                                        "cartel", "military", "tribal", "village", "ayahuasca", "jeep", "gaz",
+                                                                                                                                        "bridge", "chair", "stove", "barrel", "tank", "jerrycan", "microwave",
+                                                                                                                                         "roof", "floor", "hut", "frame" , "cube"
+                                                                                                                                };
         public static List<ItemInfo> ConstructionItemInfos = new List<ItemInfo>();
 
         public static string OnlyForSinglePlayerOrHostMessage() => $"Only available for single player or when host. Host can activate using ModManager.";
@@ -178,22 +184,24 @@ namespace ModConstructions
 
         private void InitModConstructionsScreen(int windowID)
         {
-            using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box, GUILayout.ExpandHeight(true), GUILayout.MinHeight(ModScreenMinHeight), GUILayout.MaxHeight(ModScreenMaxHeight)))
+            using (var modContentScope = new GUILayout.VerticalScope(GUI.skin.box, GUILayout.ExpandHeight(true), GUILayout.MinHeight(ModScreenMinHeight), GUILayout.MaxHeight(ModScreenMaxHeight)))
             {
                 ScreenMenuBox();
+                if (!IsMinimized)
+                {
+                    UnlockBlueprintsBox();
 
-                UnlockConstructionsBox();
-
-                ModOptionsBox();
+                    ModOptionsBox();
+                }
             }
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
         }
 
-        private void UnlockConstructionsBox()
+        private void UnlockBlueprintsBox()
         {
             using (var constructionsScope = new GUILayout.HorizontalScope(GUI.skin.box))
             {
-                GUILayout.Label("click to unlock all constructions info: ", GUI.skin.label);
+                GUILayout.Label("Click to unlock all constructions info: ", GUI.skin.label);
                 if (GUILayout.Button("Unlock blueprints", GUI.skin.button))
                 {
                     OnClickUnlockBlueprintsButton();
@@ -219,14 +227,15 @@ namespace ModConstructions
         {
             if (!IsMinimized)
             {
-                ModConstructionsScreen.Set(ModConstructionsScreen.x, ModConstructionsScreen.y, ModScreenTotalWidth, ModScreenMinHeight);
+                ModConstructionsScreen.Set(Screen.height - ModConstructionsScreen.x, Screen.height - ModScreenMinHeight, ModScreenTotalWidth, ModScreenMinHeight);
                 IsMinimized = true;
             }
             else
             {
-                ModConstructionsScreen.Set(ModConstructionsScreen.x, ModConstructionsScreen.y, ModScreenTotalWidth, ModScreenMaxHeight);
+                ModConstructionsScreen.Set(Screen.width / ModScreenMinHeight, Screen.height / ModScreenMinHeight, ModScreenTotalWidth, ModScreenTotalHeight);
                 IsMinimized = false;
             }
+            InitWindow();
         }
 
         private void CloseWindow()
