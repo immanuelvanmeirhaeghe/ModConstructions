@@ -228,7 +228,7 @@ namespace ModConstructions
         {
             if (!IsMinimized)
             {
-                ModConstructionsScreen.Set(Screen.height - ModConstructionsScreen.x, Screen.height - ModScreenMinHeight, ModScreenTotalWidth, ModScreenMinHeight);
+                ModConstructionsScreen.Set(Screen.width - ModConstructionsScreen.x, Screen.height - ModScreenMinHeight, ModScreenTotalWidth, ModScreenMinHeight);
                 IsMinimized = true;
             }
             else
