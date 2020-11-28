@@ -40,11 +40,12 @@ namespace ModConstructions
         public static GameObject SelectedGameObjectToDestroy = null;
         public static string SelectedGameObjectToDestroyName = string.Empty;
         public static List<string> DestroyableObjectNames { get; set; } = new List<string> {
-                                                                                                                                        "tree", "plant", "leaf", "stone", "bag",
-                                                                                                                                        "metal", "board", "cardboard", "plank", "plastic", "tarp", "oil",
-                                                                                                                                        "cartel", "military", "tribal", "village", "ayahuasca", "jeep", "gaz",
+                                                                                                                                        "tree", "plant", "leaf", "stone", "bag", "beam", "corrugated", "anaconda",
+                                                                                                                                        "metal", "board", "cardboard", "plank", "plastic", "tarp", "oil", "sock",
+                                                                                                                                        "cartel", "military", "tribal", "village", "ayahuasca", "gas", "boat", "ship",
                                                                                                                                         "bridge", "chair", "stove", "barrel", "tank", "jerrycan", "microwave",
-                                                                                                                                         "roof", "floor", "hut", "frame" , "cube"
+                                                                                                                                        "sprayer", "shelf", "wind", "bottle", "trash", "lab", "table", "diving",
+                                                                                                                                        "roof", "floor", "hull", "frame", "cylinder", "wire", "wiretap"
                                                                                                                                 };
         public static List<ItemInfo> ConstructionItemInfos = new List<ItemInfo>();
 
@@ -84,6 +85,7 @@ namespace ModConstructions
             string header = $"{ModName} Info";
             string textureName = HUDInfoLogTextureType.Count.ToString();
             HUDBigInfo hudBigInfo = (HUDBigInfo)LocalHUDManager.GetHUD(typeof(HUDBigInfo));
+            HUDBigInfoData.s_Duration = 2f;
             HUDBigInfoData hudBigInfoData = new HUDBigInfoData
             {
                 m_Header = header,
@@ -190,7 +192,6 @@ namespace ModConstructions
                 if (!IsMinimized)
                 {
                     UnlockBlueprintsBox();
-
                     ModOptionsBox();
                 }
             }
@@ -430,6 +431,7 @@ namespace ModConstructions
 
         public void OnNoFromDialog()
         {
+            SelectedGameObjectToDestroy = null;
             SelectedItemToDestroy = null;
             EnableCursor(false);
         }
