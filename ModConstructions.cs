@@ -228,12 +228,12 @@ namespace ModConstructions
         {
             if (!IsMinimized)
             {
-                ModConstructionsScreen.Set(Screen.width - ModConstructionsScreen.x, Screen.height - ModScreenMinHeight, ModScreenTotalWidth, ModScreenMinHeight);
+                ModConstructionsScreen.Set(ModConstructionsScreen.x, Screen.height - ModScreenMinHeight, ModScreenTotalWidth, ModScreenMinHeight);
                 IsMinimized = true;
             }
             else
             {
-                ModConstructionsScreen.Set(Screen.width / ModScreenMinHeight, Screen.height / ModScreenMinHeight, ModScreenTotalWidth, ModScreenTotalHeight);
+                ModConstructionsScreen.Set(ModConstructionsScreen.x, Screen.height / ModScreenMinHeight, ModScreenTotalWidth, ModScreenTotalHeight);
                 IsMinimized = false;
             }
             InitWindow();
