@@ -30,7 +30,7 @@ namespace ModConstructions
         private static readonly float ModScreenMaxHeight = 180f;
 
         private static bool IsMinimized { get; set; } = false;
-        public static Rect ModConstructionsScreen = new Rect(Screen.width / ModScreenMinHeight, Screen.height / ModScreenMinHeight, ModScreenTotalWidth, ModScreenTotalHeight);
+        public static Rect ModConstructionsScreen = new Rect(Screen.width / 7f, Screen.height / 7f, ModScreenTotalWidth, ModScreenTotalHeight);
         private bool ShowUI = false;
         private static ItemsManager LocalItemsManager;
         private static Player LocalPlayer;
@@ -203,10 +203,9 @@ namespace ModConstructions
             using (var constructionsScope = new GUILayout.HorizontalScope(GUI.skin.box))
             {
                 GUILayout.Label("Click to unlock all constructions info: ", GUI.skin.label);
-                if (GUILayout.Button("Unlock blueprints", GUI.skin.button))
+                if (GUILayout.Button("Unlock blueprints", GUI.skin.button, GUILayout.MaxWidth(200)))
                 {
                     OnClickUnlockBlueprintsButton();
-                    CloseWindow();
                 }
             }
         }
@@ -370,7 +369,10 @@ namespace ModConstructions
         public void OnYesFromDialog()
         {
             DestroySelectedItem();
-            EnableCursor(false);
+            if (!ShowUI)
+            {
+                EnableCursor(false);
+            }
         }
 
         private void DestroySelectedItem()
@@ -433,7 +435,10 @@ namespace ModConstructions
         {
             SelectedGameObjectToDestroy = null;
             SelectedItemToDestroy = null;
-            EnableCursor(false);
+            if (!ShowUI)
+            {
+                EnableCursor(false);
+            }
         }
 
         public void OnOkFromDialog()
@@ -443,7 +448,10 @@ namespace ModConstructions
 
         public void OnCloseDialog()
         {
-            EnableCursor(false);
+            if (!ShowUI)
+            {
+                EnableCursor(false);
+            }
         }
     }
 }
