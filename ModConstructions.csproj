@@ -347,6 +347,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\ConstructionExtended.cs" />
     <Compile Include="Extensions\ConstructionGhostManagerExtended.cs" />
     <Compile Include="Extensions\PlayerExtended.cs" />
     <Compile Include="Extensions\TrapExtended.cs" />
