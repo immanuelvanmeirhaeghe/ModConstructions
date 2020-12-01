@@ -26,7 +26,7 @@ namespace ModConstructions
         private static readonly string ModName = nameof(ModConstructions);
         private static readonly float ModScreenTotalWidth = 500f;
         private static readonly float ModScreenTotalHeight = 150f;
-        private static readonly float ModScreenMinWidth = 50f;
+        private static readonly float ModScreenMinWidth = 450f;
         private static readonly float ModScreenMaxWidth = 550f;
         private static readonly float ModScreenMinHeight = 50f;
         private static readonly float ModScreenMaxHeight = 200f;
@@ -45,13 +45,14 @@ namespace ModConstructions
         public static GameObject SelectedGameObjectToDestroy = null;
         public static string SelectedGameObjectToDestroyName = string.Empty;
         public static List<string> DestroyableObjectNames { get; set; } = new List<string> {
-                                                                                                                                        "tree", "plant", "leaf", "stone", "seat", "bag", "beam", "corrugated", "anaconda",
-                                                                                                                                        "metal", "board", "cardboard", "plank", "plastic", "tarp", "oil", "sock",
-                                                                                                                                        "cartel", "military", "tribal", "village", "ayahuasca", "gas", "boat", "ship",
-                                                                                                                                        "bridge", "chair", "stove", "barrel", "tank", "jerrycan", "microwave",
-                                                                                                                                        "sprayer", "shelf", "wind", "bottle", "trash", "lab", "table", "diving",
-                                                                                                                                        "roof", "floor", "hull", "frame", "cylinder", "wire", "wiretap"
-                                                                                                                                };
+                                                                                "tree", "plant", "leaf", "stone", "seat", "bag", "beam", "corrugated", "anaconda",
+                                                                                "metal", "board", "cardboard", "plank", "plastic", "small", "tarp", "oil", "sock",
+                                                                                "cartel", "military", "tribal", "village", "ayahuasca", "gas", "boat", "ship",
+                                                                                "bridge", "chair", "stove", "barrel", "tank", "jerrycan", "microwave",
+                                                                                "sprayer", "shelf", "wind", "air", "bottle", "trash", "lab", "table", "diving",
+                                                                                "roof", "floor", "hull", "frame", "cylinder", "wire", "wiretap", "generator",
+                                                                                "platform", "walk", "car", "mattr", "wing", "plane", "hang", "phallus", "bush"
+                                                                        };
         public static List<ItemInfo> ConstructionItemInfos = new List<ItemInfo>();
 
         public static string OnlyForSinglePlayerOrHostMessage() => $"Only available for single player or when host. Host can activate using ModManager.";
@@ -63,11 +64,11 @@ namespace ModConstructions
         public static string HUDBigInfoMessage(string message, MessageType messageType, Color? headcolor = null)
             => $"<color=#{ (headcolor != null ? ColorUtility.ToHtmlStringRGBA(headcolor.Value) : ColorUtility.ToHtmlStringRGBA(Color.red))  }>{messageType}</color>\n{message}";
 
-        public static bool HasUnlockedConstructions { get; private set; }
-        public bool InstantFinishConstructionsOption { get; private set; }
-        public bool DestroyTargetOption { get; private set; }
+        public static bool HasUnlockedConstructions { get; private set; } = false;
+        public bool InstantFinishConstructionsOption { get; private set; } = false;
+        public bool DestroyTargetOption { get; private set; } = false;
 
-        public bool IsModActiveForMultiplayer { get; private set; }
+        public bool IsModActiveForMultiplayer { get; private set; } = false;
         public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
 
         public ModConstructions()
@@ -186,19 +187,21 @@ namespace ModConstructions
         private void InitWindow()
         {
             int wid = GetHashCode();
-            ModConstructionsScreen = GUILayout.Window(wid, ModConstructionsScreen, InitModConstructionsScreen, $"{ModName}", GUI.skin.window);
-        }
-
-        private void InitModConstructionsScreen(int windowID)
-        {
-            using (var modContentScope = new GUILayout.VerticalScope(
-                                                                                                        GUI.skin.box,
+            ModConstructionsScreen = GUILayout.Window(wid, ModConstructionsScreen, InitModConstructionsScreen, ModName, GUI.skin.window,
                                                                                                         GUILayout.ExpandWidth(true),
                                                                                                         GUILayout.MinWidth(ModScreenMinWidth),
                                                                                                         GUILayout.MaxWidth(ModScreenMaxWidth),
                                                                                                         GUILayout.ExpandHeight(true),
                                                                                                         GUILayout.MinHeight(ModScreenMinHeight),
-                                                                                                        GUILayout.MaxHeight(ModScreenMaxHeight)))
+                                                                                                        GUILayout.MaxHeight(ModScreenMaxHeight));
+        }
+
+        private void InitModConstructionsScreen(int windowID)
+        {
+            ModScreenStartPositionX = ModConstructionsScreen.x;
+            ModScreenStartPositionY = ModConstructionsScreen.y;
+
+            using (var modContentScope = new GUILayout.VerticalScope(GUI.skin.box))
             {
                 ScreenMenuBox();
                 if (!IsMinimized)
@@ -239,14 +242,12 @@ namespace ModConstructions
         {
             if (!IsMinimized)
             {
-                ModScreenStartPositionX = ModConstructionsScreen.x;
-                ModScreenStartPositionY = ModConstructionsScreen.y;
-                ModConstructionsScreen.Set(ModConstructionsScreen.x, ModConstructionsScreen.y, ModScreenMinWidth, ModScreenMinHeight);
+                ModConstructionsScreen = new Rect(ModScreenStartPositionX, ModScreenStartPositionY, ModScreenTotalWidth, ModScreenMinHeight);
                 IsMinimized = true;
             }
             else
             {
-                ModConstructionsScreen.Set(ModScreenStartPositionX, ModScreenStartPositionY, ModScreenTotalWidth, ModScreenTotalHeight);
+                ModConstructionsScreen = new Rect(ModScreenStartPositionX, ModScreenStartPositionY, ModScreenTotalWidth, ModScreenTotalHeight);
                 IsMinimized = false;
             }
             InitWindow();
@@ -383,10 +384,7 @@ namespace ModConstructions
         public void OnYesFromDialog()
         {
             DestroySelectedItem();
-            if (!ShowUI)
-            {
-                EnableCursor(false);
-            }
+            EnableCursor(false);
         }
 
         private void DestroySelectedItem()
@@ -449,10 +447,7 @@ namespace ModConstructions
         {
             SelectedGameObjectToDestroy = null;
             SelectedItemToDestroy = null;
-            if (!ShowUI)
-            {
-                EnableCursor(false);
-            }
+            EnableCursor(false);
         }
 
         public void OnOkFromDialog()
@@ -462,10 +457,7 @@ namespace ModConstructions
 
         public void OnCloseDialog()
         {
-            if (!ShowUI)
-            {
-                EnableCursor(false);
-            }
+            EnableCursor(false);
         }
     }
 }
