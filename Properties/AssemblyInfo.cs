@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("ModAPI.ModConstructions")]
-[assembly: AssemblyDescription("ModConstructions is a mod for Green Hell that allows a player to unlock all constructions, shelters and beds. It also gives the player the possibility to instantly finish any ongoing constructions. (only in single player mode - Use ModManager for multiplayer).")]
+[assembly: AssemblyDescription("ModConstructions is a mod for Green Hell that allows a player to unlock all construction blueprints. It also gives the player the possibility to instantly finish any ongoing constructions and build anywhere. (only in single player mode - Use ModManager for multiplayer).")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Dragon Legion")]
 [assembly: AssemblyProduct("ModAPI.ModConstructions")]
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.0.3.7")]
-[assembly: AssemblyFileVersion("1.0.3.7")]
+[assembly: AssemblyVersion("1.0.3.8")]
+[assembly: AssemblyFileVersion("1.0.3.8")]

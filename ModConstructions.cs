@@ -45,13 +45,14 @@ namespace ModConstructions
         public static GameObject SelectedGameObjectToDestroy = null;
         public static string SelectedGameObjectToDestroyName = string.Empty;
         public static List<string> DestroyableObjectNames { get; set; } = new List<string> {
-                                                                                "tree", "plant", "leaf", "stone", "seat", "bag", "beam", "corrugated", "anaconda",
+                                                                                "tree", "plant", "leaf", "stone", "seat", "bag", "beam", "corrugated", "dead",
                                                                                 "metal", "board", "cardboard", "plank", "plastic", "small", "tarp", "oil", "sock",
                                                                                 "cartel", "military", "tribal", "village", "ayahuasca", "gas", "boat", "ship",
                                                                                 "bridge", "chair", "stove", "barrel", "tank", "jerrycan", "microwave",
                                                                                 "sprayer", "shelf", "wind", "air", "bottle", "trash", "lab", "table", "diving",
                                                                                 "roof", "floor", "hull", "frame", "cylinder", "wire", "wiretap", "generator",
-                                                                                "platform", "walk", "car", "mattr", "wing", "plane", "hang", "phallus", "bush"
+                                                                                "platform", "walk", "car", "mattr", "wing", "plane", "hang", "phallus", "bush",
+                                                                                "lod0"
                                                                         };
         public static List<ItemInfo> ConstructionItemInfos = new List<ItemInfo>();
 
@@ -206,8 +207,8 @@ namespace ModConstructions
                 ScreenMenuBox();
                 if (!IsMinimized)
                 {
-                    UnlockBlueprintsBox();
                     ModOptionsBox();
+                    UnlockBlueprintsBox();
                 }
             }
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
