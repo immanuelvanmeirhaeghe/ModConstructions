@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("ModAPI.ModConstructions")]
-[assembly: AssemblyDescription("ModConstructions is a mod for Green Hell that allows a player to unlock all construction blueprints. It also gives the player the possibility to instantly finish any ongoing constructions and build anywhere. (only in single player mode - Use ModManager for multiplayer).")]
+[assembly: AssemblyDescription("ModConstructions is a mod for Green Hell that allows a player to unlock all construction blueprints. It also gives the player the possibility to instantly finish any ongoing constructions and build anywhere. Press Alpha8 (default) or the key configurable in ModAPI to open the mod screen. When enabled, press DELETE (default) or the key configurable in ModAPI to delete mouse target.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Dragon Legion")]
+[assembly: AssemblyCompany("[Dragon Legion]Immaanuel")]
 [assembly: AssemblyProduct("ModAPI.ModConstructions")]
-[assembly: AssemblyCopyright("Copyright ©  2020")]
+[assembly: AssemblyCopyright("Copyright ©  2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.0.3.8")]
-[assembly: AssemblyFileVersion("1.0.3.8")]
+[assembly: AssemblyVersion("1.0.3.7")]
+[assembly: AssemblyFileVersion("1.0.3.7")]
