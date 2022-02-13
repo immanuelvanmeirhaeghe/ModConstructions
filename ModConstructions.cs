@@ -445,7 +445,11 @@ namespace ModConstructions
                     {
                         if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo))
                         {
-                            DestroyOnHit(hitInfo);
+                            GameObject go = hitInfo.collider.transform.gameObject;
+                            if (go != null)
+                            {
+                                DestroyOnHit(hitInfo);
+                            }
                         }
                     }
                 }
@@ -481,10 +485,18 @@ namespace ModConstructions
 
         private void ShowConfirmDestroyDialog()
         {
-            EnableCursor(true);
-            string description = $"Are you sure you want to destroy selected { (SelectedGameObjectToDestroy != null ? SelectedGameObjectToDestroy.name : "item") }?";
-            YesNoDialog destroyYesNoDialog = GreenHellGame.GetYesNoDialog();
-            destroyYesNoDialog.Show(this, DialogWindowType.YesNo, $"{ModName} Info", description, true);
+            try
+            {
+                EnableCursor(true);
+                string description = $"Are you sure you want to destroy selected { (SelectedGameObjectToDestroy != null ? SelectedGameObjectToDestroy.name : "item") }?";
+
+                YesNoDialog destroyYesNoDialog = GreenHellGame.GetYesNoDialog();
+                destroyYesNoDialog.Show(this, DialogWindowType.YesNo, $"{ModName} Info", description, true);
+            }
+            catch (Exception exc)
+            {
+                HandleException(exc, nameof(ShowConfirmDestroyDialog));
+            }
         }
 
         public void UnlockAllConstructions()
