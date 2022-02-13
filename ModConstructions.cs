@@ -14,7 +14,7 @@ namespace ModConstructions
     /// ModConstructions is a mod for Green Hell that allows a player to unlock all construction blueprints.
     /// It also gives the player the possibility to instantly finish any ongoing constructions and build anywhere.
     /// Press Alpha8 (default) or the key configurable in ModAPI to open the mod screen.
-    /// When enabled, press DELETE (default) or the key configurable in ModAPI to delete mouse target.
+    /// When enabled, press KeypadMinus (default) or the key configurable in ModAPI to delete mouse target.
     /// </summary>
     public class ModConstructions : MonoBehaviour, IYesNoDialogOwner
     {
@@ -137,7 +137,7 @@ namespace ModConstructions
 
         private static readonly string RuntimeConfigurationFile = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
         private static KeyCode ModKeybindingId { get; set; } = KeyCode.Alpha8;
-        private static KeyCode ModDeleteKeybindingId { get; set; } = KeyCode.Delete;
+        private static KeyCode ModDeleteKeybindingId { get; set; } = KeyCode.KeypadMinus;
         private KeyCode GetConfigurableKey(string buttonId)
         {
             KeyCode configuredKeyCode = default;
@@ -353,7 +353,7 @@ namespace ModConstructions
                     GUI.color = DefaultGuiColor;
                     GUILayout.Label($"Construction options: ", GUI.skin.label);
                     InstantFinishConstructionsOption = GUILayout.Toggle(InstantFinishConstructionsOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
-                    DestroyTargetOption = GUILayout.Toggle(DestroyTargetOption, $"Use [DELETE] to destroy target?", GUI.skin.toggle);
+                    DestroyTargetOption = GUILayout.Toggle(DestroyTargetOption, $"Use [{ModDeleteKeybindingId}] to destroy target?", GUI.skin.toggle);
                 }
             }
             catch (Exception exc)
@@ -445,11 +445,7 @@ namespace ModConstructions
                     {
                         if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo))
                         {
-                            GameObject go = hitInfo.collider.transform.gameObject;
-                            if (go != null)
-                            {
-                                DestroyOnHit(hitInfo);
-                            }
+                            DestroyOnHit(hitInfo);
                         }
                     }
                 }
@@ -468,11 +464,14 @@ namespace ModConstructions
                 {
                     if (DestroyTargetOption)
                     {
-                        GameObject go = hitInfo.collider.transform.gameObject;
-                        if (go != null)
+                        SelectedGameObjectToDestroy = hitInfo.collider.transform.gameObject;
+                        if (SelectedGameObjectToDestroy != null)
                         {
-                            SelectedGameObjectToDestroy = go.gameObject;
-                            ShowConfirmDestroyDialog();
+                            SelectedItemToDestroy = SelectedGameObjectToDestroy?.GetComponent<Item>();
+                            SelectedGameObjectToDestroyName = SelectedItemToDestroy?.m_Info != null
+                                                                                                            ? SelectedItemToDestroy?.m_Info?.GetNameToDisplayLocalized()
+                                                                                                            : GreenHellGame.Instance.GetLocalization().Get(SelectedGameObjectToDestroy?.name);
+                            ShowConfirmDestroyDialog(SelectedGameObjectToDestroyName);
                         }
                     }
                 }
@@ -483,15 +482,15 @@ namespace ModConstructions
             }
         }
 
-        private void ShowConfirmDestroyDialog()
+        private void ShowConfirmDestroyDialog(string itemToDestroyName)
         {
             try
             {
                 EnableCursor(true);
-                string description = $"Are you sure you want to destroy selected { (SelectedGameObjectToDestroy != null ? SelectedGameObjectToDestroy.name : "item") }?";
-
+                string description = $"Are you sure you want to destroy { itemToDestroyName }?";
                 YesNoDialog destroyYesNoDialog = GreenHellGame.GetYesNoDialog();
-                destroyYesNoDialog.Show(this, DialogWindowType.YesNo, $"{ModName} Info", description, true);
+                destroyYesNoDialog.Show(this, DialogWindowType.YesNo, $"{ModName} Info", description, true, false);
+                destroyYesNoDialog.gameObject.SetActive(true);
             }
             catch (Exception exc)
             {
@@ -537,11 +536,6 @@ namespace ModConstructions
             {
                 if (SelectedGameObjectToDestroy != null)
                 {
-                    SelectedItemToDestroy = SelectedGameObjectToDestroy.GetComponent<Item>();
-                    SelectedGameObjectToDestroyName = SelectedItemToDestroy != null && SelectedItemToDestroy.m_Info != null
-                                                                                                    ? SelectedItemToDestroy.m_Info.GetNameToDisplayLocalized()
-                                                                                                    : GreenHellGame.Instance.GetLocalization().Get(SelectedGameObjectToDestroy.name);
-
                     if (SelectedItemToDestroy != null || IsDestroyable(SelectedGameObjectToDestroy))
                     {
                         if (SelectedItemToDestroy != null && !SelectedItemToDestroy.IsPlayer() && !SelectedItemToDestroy.IsAI() && !SelectedItemToDestroy.IsHumanAI())
@@ -556,7 +550,7 @@ namespace ModConstructions
                     }
                     else
                     {
-                        ShowHUDBigInfo(HUDBigInfoMessage(ItemNotDestroyedMessage(SelectedGameObjectToDestroyName), MessageType.Error, Color.red));
+                        ShowHUDBigInfo(HUDBigInfoMessage(ItemNotDestroyedMessage(SelectedGameObjectToDestroyName), MessageType.Warning, Color.yellow));
                     }
                 }
                 else
