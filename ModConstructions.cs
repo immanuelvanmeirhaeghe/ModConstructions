@@ -29,7 +29,7 @@ namespace ModConstructions
         private static readonly float ModScreenMaxHeight = 200f;
 
         private static float ModScreenStartPositionX { get; set; } = Screen.width / 3f;
-        private static float ModScreenStartPositionY { get; set; } = Screen.height / 3f;
+        private static float ModScreenStartPositionY { get; set; } = 0f;
         private static bool IsMinimized { get; set; } = false;
 
         private Color DefaultGuiColor = GUI.color;
@@ -162,7 +162,7 @@ namespace ModConstructions
                     }
                 }
 
-                configuredKeybinding = configuredKeybinding?.Replace("NumPad", "Keypad").Replace("Oem", "");
+                configuredKeybinding = configuredKeybinding?.Replace("NumPad", "Keypad").Replace("Oem", "").Replace("D","Alpha");
 
                 configuredKeyCode = (KeyCode)(!string.IsNullOrEmpty(configuredKeybinding)
                                                             ? Enum.Parse(typeof(KeyCode), configuredKeybinding)
@@ -468,9 +468,19 @@ namespace ModConstructions
                         if (SelectedGameObjectToDestroy != null)
                         {
                             SelectedItemToDestroy = SelectedGameObjectToDestroy?.GetComponent<Item>();
-                            SelectedGameObjectToDestroyName = SelectedItemToDestroy?.m_Info != null
-                                                                                                            ? SelectedItemToDestroy?.m_Info?.GetNameToDisplayLocalized()
-                                                                                                            : GreenHellGame.Instance.GetLocalization().Get(SelectedGameObjectToDestroy?.name);
+                            if (SelectedItemToDestroy != null && Item.Find(SelectedItemToDestroy.GetInfoID()) != null)
+                            {
+                                SelectedGameObjectToDestroyName = SelectedItemToDestroy?.GetName();
+                            }
+                            else
+                            {
+                                SelectedGameObjectToDestroyName = SelectedGameObjectToDestroy?.name;
+                            }
+
+                            //SelectedGameObjectToDestroyName = SelectedItemToDestroy?.m_Info != null
+                            //                                                                                ? SelectedItemToDestroy?.GetName()
+                            //                                                                                : SelectedGameObjectToDestroy?.name;
+
                             ShowConfirmDestroyDialog(SelectedGameObjectToDestroyName);
                         }
                     }
@@ -509,12 +519,9 @@ namespace ModConstructions
                     {
                         foreach (ItemInfo constructionItemInfo in ConstructionItemInfos)
                         {
-                            if (constructionItemInfo.m_ID != ItemID.safezone_totem && constructionItemInfo.m_ID != ItemID.token_stand)
-                            {
-                                LocalItemsManager.UnlockItemInNotepad(constructionItemInfo.m_ID);
-                                LocalItemsManager.UnlockItemInfo(constructionItemInfo.m_ID.ToString());
-                                ShowHUDInfoLog(constructionItemInfo.m_ID.ToString(), "HUD_InfoLog_NewEntry");
-                            }
+                            LocalItemsManager.UnlockItemInNotepad(constructionItemInfo.m_ID);
+                            LocalItemsManager.UnlockItemInfo(constructionItemInfo.m_ID.ToString());
+                            ShowHUDInfoLog(constructionItemInfo.m_ID.ToString(), "HUD_InfoLog_NewEntry");
                         }
                     }
                     HasUnlockedConstructions = true;
@@ -538,7 +545,7 @@ namespace ModConstructions
                 {
                     if (SelectedItemToDestroy != null || IsDestroyable(SelectedGameObjectToDestroy))
                     {
-                        if (SelectedItemToDestroy != null && !SelectedItemToDestroy.IsPlayer() && !SelectedItemToDestroy.IsAI() && !SelectedItemToDestroy.IsHumanAI())
+                        if (SelectedItemToDestroy != null && !SelectedItemToDestroy.IsPlayer() && !SelectedItemToDestroy.IsAI() && !SelectedItemToDestroy.IsHumanAI() )
                         {
                             LocalItemsManager.AddItemToDestroy(SelectedItemToDestroy);
                         }

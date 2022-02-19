@@ -8,7 +8,7 @@
       <EN>ModKeybindingId</EN>
     </Description>
   </Button>
-  <Button ID="ModDeleteKeybindingId">
+  <Button Standard="Subtract" ID="ModDeleteKeybindingId">
     <Name>
       <EN>ModDeleteKeybindingId</EN>
     </Name>
@@ -20,7 +20,7 @@
     <EN>ModConstructions</EN>
   </Name>
   <Description>
-    <EN>ModConstructions is a mod for Green Hell that allows a player to unlock all construction blueprints. It also gives the player the possibility to instantly finish any ongoing constructions and build anywhere. Press Alpha8 (default) or the key configurable in ModAPI to open the mod screen. When enabled, press DELETE (default) or the key configurable in ModAPI to delete mouse target.</EN>
+    <EN>ModConstructions is a mod for Green Hell that allows a player to unlock all construction blueprints. It also gives the player the possibility to instantly finish any ongoing constructions and build anywhere. Press Alpha8 (default) or the key configurable in ModAPI to open the mod screen. When enabled, press KeypadMinus (default) or the key configurable in ModAPI to delete mouse target.</EN>
   </Description>
-  <Version>1.0.3.7</Version>
+  <Version>1.0.3.8</Version>
 </Mod>
