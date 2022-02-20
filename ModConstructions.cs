@@ -130,7 +130,10 @@ namespace ModConstructions
         }
         private void HandleException(Exception exc, string methodName)
         {
-            string info = $"[{ModName}:{methodName}] throws exception:\n{exc.Message}";
+            string info = $"[{ModName}:{methodName}] throws exception:" +
+                $"{exc.Message}\n" +
+                $"at {exc?.StackTrace}\n" +
+                $"{exc?.InnerException}\n";
             ModAPI.Log.Write(info);
             ShowHUDBigInfo(HUDBigInfoMessage(info, MessageType.Error, Color.red));
         }
@@ -162,7 +165,7 @@ namespace ModConstructions
                     }
                 }
 
-                configuredKeybinding = configuredKeybinding?.Replace("NumPad", "Keypad").Replace("Oem", "").Replace("D","Alpha");
+                configuredKeybinding = configuredKeybinding?.Replace("NumPad", "Keypad").Replace("Oem", "").Replace("D","Alpha").Replace("Subtract","KeypadMinus");
 
                 configuredKeyCode = (KeyCode)(!string.IsNullOrEmpty(configuredKeybinding)
                                                             ? Enum.Parse(typeof(KeyCode), configuredKeybinding)
@@ -467,19 +470,16 @@ namespace ModConstructions
                         SelectedGameObjectToDestroy = hitInfo.collider.transform.gameObject;
                         if (SelectedGameObjectToDestroy != null)
                         {
+                            var localization = GreenHellGame.Instance.GetLocalization();
                             SelectedItemToDestroy = SelectedGameObjectToDestroy?.GetComponent<Item>();
                             if (SelectedItemToDestroy != null && Item.Find(SelectedItemToDestroy.GetInfoID()) != null)
                             {
-                                SelectedGameObjectToDestroyName = SelectedItemToDestroy?.GetName();
+                                SelectedGameObjectToDestroyName =  localization.Get(SelectedItemToDestroy.GetInfoID().ToString()) ?? SelectedItemToDestroy?.GetName() ;
                             }
                             else
                             {
-                                SelectedGameObjectToDestroyName = SelectedGameObjectToDestroy?.name;
+                                SelectedGameObjectToDestroyName =  localization.Get(SelectedGameObjectToDestroy?.name) ?? SelectedGameObjectToDestroy?.name;
                             }
-
-                            //SelectedGameObjectToDestroyName = SelectedItemToDestroy?.m_Info != null
-                            //                                                                                ? SelectedItemToDestroy?.GetName()
-                            //                                                                                : SelectedGameObjectToDestroy?.name;
 
                             ShowConfirmDestroyDialog(SelectedGameObjectToDestroyName);
                         }
@@ -541,24 +541,17 @@ namespace ModConstructions
         {
             try
             {
-                if (SelectedGameObjectToDestroy != null)
+                if (SelectedItemToDestroy != null || SelectedGameObjectToDestroy != null)
                 {
-                    if (SelectedItemToDestroy != null || IsDestroyable(SelectedGameObjectToDestroy))
+                    if (SelectedItemToDestroy != null && !SelectedItemToDestroy.IsPlayer() && !SelectedItemToDestroy.IsAI() && !SelectedItemToDestroy.IsHumanAI())
                     {
-                        if (SelectedItemToDestroy != null && !SelectedItemToDestroy.IsPlayer() && !SelectedItemToDestroy.IsAI() && !SelectedItemToDestroy.IsHumanAI() )
-                        {
-                            LocalItemsManager.AddItemToDestroy(SelectedItemToDestroy);
-                        }
-                        else
-                        {
-                            Destroy(SelectedGameObjectToDestroy);
-                        }
-                        ShowHUDBigInfo(HUDBigInfoMessage(ItemDestroyedMessage(SelectedGameObjectToDestroyName), MessageType.Info, Color.green));
+                        LocalItemsManager.AddItemToDestroy(SelectedItemToDestroy);
                     }
                     else
                     {
-                        ShowHUDBigInfo(HUDBigInfoMessage(ItemNotDestroyedMessage(SelectedGameObjectToDestroyName), MessageType.Warning, Color.yellow));
+                        Destroy(SelectedGameObjectToDestroy);
                     }
+                    ShowHUDBigInfo(HUDBigInfoMessage(ItemDestroyedMessage(SelectedGameObjectToDestroyName), MessageType.Info, Color.green));
                 }
                 else
                 {
@@ -568,23 +561,6 @@ namespace ModConstructions
             catch (Exception exc)
             {
                 HandleException(exc, nameof(DestroySelectedItem));
-            }
-        }
-
-        private bool IsDestroyable(GameObject go)
-        {
-            try
-            {
-                if (go == null || string.IsNullOrEmpty(go.name))
-                {
-                    return false;
-                }
-                return DestroyableObjectNames.Any(destroyableObjectName => go.name.ToLower().Contains(destroyableObjectName));
-            }
-            catch (Exception exc)
-            {
-                HandleException(exc, nameof(IsDestroyable));
-                return false;
             }
         }
 
