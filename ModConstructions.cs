@@ -43,16 +43,6 @@ namespace ModConstructions
         public static Item SelectedItemToDestroy = null;
         public static GameObject SelectedGameObjectToDestroy = null;
         public static string SelectedGameObjectToDestroyName = string.Empty;
-        public static List<string> DestroyableObjectNames { get; set; } = new List<string> {
-                                                                                "tree", "plant", "leaf", "stone", "seat", "bag", "beam", "corrugated", "dead",
-                                                                                "metal", "board", "cardboard", "plank", "plastic", "small", "tarp", "oil", "sock",
-                                                                                "cartel", "military", "tribal", "village", "ayahuasca", "gas", "boat", "ship",
-                                                                                "bridge", "chair", "stove", "barrel", "tank", "jerrycan", "microwave",
-                                                                                "sprayer", "shelf", "wind", "air", "bottle", "trash", "lab", "table", "diving",
-                                                                                "roof", "floor", "hull", "frame", "cylinder", "wire", "wiretap", "generator",
-                                                                                "platform", "walk", "car", "mattr", "wing", "plane", "hang", "phallus", "bush",
-                                                                                "lod0"
-                                                                        };
         public static List<ItemInfo> ConstructionItemInfos = new List<ItemInfo>();
 
         public static string AlreadyUnlockedBlueprints()
@@ -132,7 +122,7 @@ namespace ModConstructions
         {
             string info = $"[{ModName}:{methodName}] throws exception:" +
                 $"{exc.Message}\n" +
-                $"at {exc?.StackTrace}\n" +
+                $"{exc?.StackTrace}\n" +
                 $"{exc?.InnerException}\n";
             ModAPI.Log.Write(info);
             ShowHUDBigInfo(HUDBigInfoMessage(info, MessageType.Error, Color.red));
@@ -165,11 +155,17 @@ namespace ModConstructions
                     }
                 }
 
-                configuredKeybinding = configuredKeybinding?.Replace("NumPad", "Keypad").Replace("Oem", "").Replace("D","Alpha").Replace("Subtract","KeypadMinus");
+                configuredKeybinding = configuredKeybinding?.Replace("NumPad", "Keypad").Replace("Oem", "").Replace("D", "Alpha").Replace("Subtract", "KeypadMinus");
 
-                configuredKeyCode = (KeyCode)(!string.IsNullOrEmpty(configuredKeybinding)
-                                                            ? Enum.Parse(typeof(KeyCode), configuredKeybinding)
-                                                            : GetType().GetProperty(buttonId)?.GetValue(this));
+                if (!string.IsNullOrEmpty(configuredKeybinding))
+                {
+                    configuredKeyCode = EnumUtils<KeyCode>.GetValue(configuredKeybinding);
+                }
+                else
+                {
+                    configuredKeyCode = (KeyCode)(GetType().GetProperty(buttonId)?.GetValue(this));
+                }
+
                 return configuredKeyCode;
             }
             catch (Exception exc)
