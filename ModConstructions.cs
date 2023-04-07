@@ -131,6 +131,7 @@ namespace ModConstructions
         private static readonly string RuntimeConfigurationFile = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
         private static KeyCode ModKeybindingId { get; set; } = KeyCode.Alpha8;
         private static KeyCode ModDeleteKeybindingId { get; set; } = KeyCode.KeypadMinus;
+
         private KeyCode GetConfigurableKey(string buttonId)
         {
             KeyCode configuredKeyCode = default;
@@ -155,15 +156,20 @@ namespace ModConstructions
                     }
                 }
 
-                configuredKeybinding = configuredKeybinding?.Replace("NumPad", "Keypad").Replace("Oem", "").Replace("D", "Alpha").Replace("Subtract", "KeypadMinus");
-
                 if (!string.IsNullOrEmpty(configuredKeybinding))
                 {
                     configuredKeyCode = EnumUtils<KeyCode>.GetValue(configuredKeybinding);
                 }
                 else
                 {
-                    configuredKeyCode = (KeyCode)(GetType().GetProperty(buttonId)?.GetValue(this));
+                    if (buttonId == nameof(ModKeybindingId))
+                    {
+                        configuredKeyCode = ModKeybindingId;
+                    }
+                    if (buttonId == nameof(ModDeleteKeybindingId))
+                    {
+                        configuredKeyCode = ModDeleteKeybindingId;
+                    }
                 }
 
                 return configuredKeyCode;
@@ -171,10 +177,18 @@ namespace ModConstructions
             catch (Exception exc)
             {
                 HandleException(exc, nameof(GetConfigurableKey));
-                configuredKeyCode = (KeyCode)(GetType().GetProperty(buttonId)?.GetValue(this));
+                if (buttonId == nameof(ModKeybindingId))
+                {
+                    configuredKeyCode = ModKeybindingId;
+                }
+                if (buttonId == nameof(ModDeleteKeybindingId))
+                {
+                    configuredKeyCode = ModDeleteKeybindingId;
+                }
                 return configuredKeyCode;
             }
         }
+
         private void ModManager_onPermissionValueChanged(bool optionValue)
         {
             string reason = optionValue ? "the game host allowed usage" : "the game host did not allow usage";
