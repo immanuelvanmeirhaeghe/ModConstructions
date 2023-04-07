@@ -8,7 +8,7 @@ namespace ModConstructions.Extensions
 {
     public class ConstructionGhostExtended : ConstructionGhost
     {
-        public override void UpdateProhibitionType()
+        public override void UpdateProhibitionType(bool check_is_snapped = true)
         {
             m_ProhibitionType = ProhibitionType.None;
         }
