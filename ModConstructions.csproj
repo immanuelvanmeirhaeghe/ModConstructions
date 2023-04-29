@@ -347,12 +347,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Enums.cs" />
+    <Compile Include="Data\Enums.cs" />
     <Compile Include="Extensions\ConstructionExtended.cs" />
     <Compile Include="Extensions\ConstructionGhostExtended.cs" />
     <Compile Include="Extensions\ConstructionGhostManagerExtended.cs" />
     <Compile Include="Extensions\PlayerExtended.cs" />
-    <Compile Include="Extensions\TrapExtended.cs" />
+    <Compile Include="Managers\StylingManager.cs" />
     <Compile Include="ModConstructions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

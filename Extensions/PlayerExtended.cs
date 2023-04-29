@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using ModConstructions.Managers;
+using UnityEngine;
 
-namespace ModConstructions
+namespace ModConstructions.Extensions
 {
     class PlayerExtended : Player
     {
@@ -8,6 +9,7 @@ namespace ModConstructions
         {
             base.Start();
             new GameObject($"__{nameof(ModConstructions)}__").AddComponent<ModConstructions>();
+            new GameObject($"__{nameof(StylingManager)}__").AddComponent<StylingManager>();
         }
     }
 }
