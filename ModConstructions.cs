@@ -24,22 +24,20 @@ namespace ModConstructions
         private static ModConstructions Instance;
         private static readonly string RuntimeConfiguration = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
         private static readonly string ModName = nameof(ModConstructions);
-        private static float ModConstructionsScreenTotalWidth { get; set; } = 500f;
+        private static float ModConstructionsScreenTotalWidth { get; set; } = 700f;
         private static float ModConstructionsScreenTotalHeight { get; set; } = 150f;
-        private static float ModConstructionsScreenMinWidth { get; set; } = 450f;
-        private static float ModConstructionsScreenMaxWidth { get; set; } = 550f;
+        private static float ModConstructionsScreenMinWidth { get; set; } = 700f;
+        private static float ModConstructionsScreenMaxWidth { get; set; } = Screen.width;
         private static float ModConstructionsScreenMinHeight { get; set; } = 50f;
-        private static float ModConstructionsScreenMaxHeight { get; set; } = 200f;
-
-        private KeyCode ShortcutKey { get; set; } = KeyCode.Alpha8;
-        private KeyCode DeleteShortcutKey { get; set; } = KeyCode.KeypadMinus;
-        
+        private static float ModConstructionsScreenMaxHeight { get; set; } = Screen.height;                
         private static float ModConstructionsScreenStartPositionX { get; set; } = Screen.width / 3f;
         private static float ModConstructionsScreenStartPositionY { get; set; } = 0f;
         private bool IsModConstructionsMinimized { get; set; } = false;
-
-        public static Rect ModConstructionsScreen = new Rect(ModConstructionsScreenStartPositionX, ModConstructionsScreenStartPositionY, ModConstructionsScreenTotalWidth, ModConstructionsScreenTotalHeight);
+        private KeyCode ShortcutKey { get; set; } = KeyCode.Alpha8;
+        private KeyCode DeleteShortcutKey { get; set; } = KeyCode.KeypadMinus;
         private bool ShowModConstructionsScreen = false;
+        private static Rect ModConstructionsScreen = new Rect(ModConstructionsScreenStartPositionX, ModConstructionsScreenStartPositionY, ModConstructionsScreenTotalWidth, ModConstructionsScreenTotalHeight);
+       
         private static ItemsManager LocalItemsManager;
         private static Player LocalPlayer;
         private static HUDManager LocalHUDManager;
@@ -60,7 +58,7 @@ namespace ModConstructions
         public static string ItemNotDestroyedMessage(string item)
             => $"{item} cannot be destroyed!";
        
-        public static bool HasUnlockedConstructions { get; set; } = false;
+        public bool HasUnlockedConstructions { get; set; } = false;
         public bool InstantBuildOption { get; set; } = false;
         public bool DestroyTargetOption { get; set; } = false;
         
@@ -81,8 +79,9 @@ namespace ModConstructions
         public IConfigurableMod SelectedMod { get; set; } = default;
         public Vector2 ModConstructionsInfoScrollViewPosition { get; set; } = default;
         public bool ShowModConstructionsInfo { get; set; } = false;
+
         public static bool IsModEnabled => Get().IsModActiveForSingleplayer || Get().IsModActiveForMultiplayer;
-        public static bool InstantBuildEnabled { get; set; }
+        public static bool InstantBuildEnabled { get; set; } = false;
 
         private string OnlyForSinglePlayerOrHostMessage()
                      => "Only available for single player or when host. Host can activate using ModManager.";
@@ -296,9 +295,9 @@ namespace ModConstructions
 
         private void ShowModConstructionsWindow()
         {
-            int wid = ModConstructionsScreen.GetHashCode();
-            string modScreenTitle = $"{ModName} created by [Dragon Legion] Immaanuel#4300";
-            ModConstructionsScreen = GUILayout.Window(wid, ModConstructionsScreen, InitModConstructionsScreen, modScreenTitle, GUI.skin.window,
+            int ModConstructionsScreenId = ModConstructionsScreen.GetHashCode();
+            string ModConstructionsScreenTitle = $"{ModName} created by [Dragon Legion] Immaanuel#4300";
+            ModConstructionsScreen = GUILayout.Window(ModConstructionsScreenId, ModConstructionsScreen, InitModConstructionsScreen, ModConstructionsScreenTitle, GUI.skin.window,
                                                                                                         GUILayout.ExpandWidth(true),
                                                                                                         GUILayout.MinWidth(ModConstructionsScreenMinWidth),
                                                                                                         GUILayout.MaxWidth(ModConstructionsScreenMaxWidth),
@@ -442,6 +441,14 @@ namespace ModConstructions
         private void InstantBuildOptionBox()
         {
             bool _instantBuildOption = InstantBuildOption;
+            if (InstantBuildOption)
+            {
+                InstantBuildEnabled = true;
+            }
+            else
+            {
+                InstantBuildEnabled = false;
+            }
             InstantBuildOption = GUILayout.Toggle(InstantBuildOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
             if (_instantBuildOption != InstantBuildOption)
             {
@@ -453,7 +460,7 @@ namespace ModConstructions
                 {
                     InstantBuildEnabled = false;
                 }
-                ShowHUDBigInfo(HUDBigInfoMessage($"Instant build using [F8] has been {(InstantBuildEnabled ? "enabled" : "disabled")} ", MessageType.Info, Color.green));
+                ShowHUDBigInfo(HUDBigInfoMessage($"Mod is {(IsModEnabled ? "enabled" : "disabled")} and Instant build using [F8] has been {(InstantBuildEnabled ? "enabled" : "disabled")} ", MessageType.Info, Color.green));
             }
         }
 

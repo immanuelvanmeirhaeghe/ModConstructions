@@ -10,9 +10,17 @@ namespace ModConstructions.Extensions
     {
 		public override void SetUpperLevel(bool set, int level)
 		{
-			m_UpperLevel = set;
-			m_Level = 0;
-			base.OnSetUpperLevel(set);
-		}
+			if (ModConstructions.IsModEnabled)
+			{
+                m_UpperLevel = set;
+                m_Level = 0;              
+            }
+            else
+            {
+                m_UpperLevel = set;
+                m_Level = level;
+            }
+            base.OnSetUpperLevel(set);
+        }
 	}
 }
