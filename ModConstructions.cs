@@ -80,7 +80,7 @@ namespace ModConstructions
         public Vector2 ModConstructionsInfoScrollViewPosition { get; set; } = default;
         public bool ShowModConstructionsInfo { get; set; } = false;
 
-        public static bool IsModEnabled => Get().IsModActiveForSingleplayer || Get().IsModActiveForMultiplayer;
+        public static bool IsModConstructionsEnabled => Get().IsModActiveForSingleplayer || Get().IsModActiveForMultiplayer;
         public static bool InstantBuildEnabled { get; set; } = false;
 
         private string OnlyForSinglePlayerOrHostMessage()
@@ -89,7 +89,7 @@ namespace ModConstructions
             => $"Permission to use mods and cheats in multiplayer was {permission} because {reason}.";
         private string HUDBigInfoMessage(string message, MessageType messageType, Color? headcolor = null)
             => $"<color=#{(headcolor != null ? ColorUtility.ToHtmlStringRGBA(headcolor.Value) : ColorUtility.ToHtmlStringRGBA(Color.red))}>{messageType}</color>\n{message}";
-     
+
         private void ModManager_onPermissionValueChanged(bool optionValue)
         {
             string reason = optionValue ? "the game host allowed usage" : "the game host did not allow usage";
@@ -467,7 +467,7 @@ namespace ModConstructions
                     {
                         InstantBuildEnabled = false;
                     }
-                    ShowHUDBigInfo(HUDBigInfoMessage($"Mod is {(IsModEnabled ? "enabled" : "disabled")}\nInstant build has been {(InstantBuildEnabled ? "enabled" : "disabled")} ", MessageType.Info, Color.green));
+                    ShowHUDBigInfo(HUDBigInfoMessage($"Mod is {(IsModConstructionsEnabled ? "enabled" : "disabled")}\nInstant build has been {(InstantBuildEnabled ? "enabled" : "disabled")} ", MessageType.Info, Color.green));
                 }
             }
             catch (Exception exc)
