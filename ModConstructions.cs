@@ -33,7 +33,7 @@ namespace ModConstructions
         private static float ModConstructionsScreenStartPositionX { get; set; } = 0f;
         private static float ModConstructionsScreenStartPositionY { get; set; } = 0f;
         private bool IsModConstructionsMinimized { get; set; } = false;
-        private int ModConstructionsScreenId { get; set; } = 0;
+        private static int ModConstructionsScreenId { get; set; } = 0;
         private KeyCode ShortcutKey { get; set; } = KeyCode.Alpha8;
         private KeyCode DeleteShortcutKey { get; set; } = KeyCode.KeypadMinus;
         private bool ShowModConstructionsScreen { get; set; } = false;
