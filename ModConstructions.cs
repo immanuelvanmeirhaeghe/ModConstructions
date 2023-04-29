@@ -81,6 +81,8 @@ namespace ModConstructions
         public IConfigurableMod SelectedMod { get; set; } = default;
         public Vector2 ModConstructionsInfoScrollViewPosition { get; set; } = default;
         public bool ShowModConstructionsInfo { get; set; } = false;
+        public static bool IsModEnabled => Get().IsModActiveForSingleplayer || Get().IsModActiveForMultiplayer;
+        public static bool InstantBuildEnabled { get; set; }
 
         private string OnlyForSinglePlayerOrHostMessage()
                      => "Only available for single player or when host. Host can activate using ModManager.";
@@ -274,7 +276,7 @@ namespace ModConstructions
             {
                 InitData();
                 InitSkinUI();
-                InitWindow();
+                ShowModConstructionsWindow();
             }
         }
 
@@ -292,9 +294,9 @@ namespace ModConstructions
             GUI.skin = ModAPI.Interface.Skin;
         }
 
-        private void InitWindow()
+        private void ShowModConstructionsWindow()
         {
-            int wid = GetHashCode();
+            int wid = ModConstructionsScreen.GetHashCode();
             string modScreenTitle = $"{ModName} created by [Dragon Legion] Immaanuel#4300";
             ModConstructionsScreen = GUILayout.Window(wid, ModConstructionsScreen, InitModConstructionsScreen, modScreenTitle, GUI.skin.window,
                                                                                                         GUILayout.ExpandWidth(true),
@@ -370,7 +372,7 @@ namespace ModConstructions
                 ModConstructionsScreen = new Rect(ModConstructionsScreenStartPositionX, ModConstructionsScreenStartPositionY, ModConstructionsScreenTotalWidth, ModConstructionsScreenTotalHeight);
                 IsModConstructionsMinimized = false;
             }
-            InitWindow();
+            ShowModConstructionsWindow();
         }
 
         private void CloseWindow()
@@ -416,13 +418,42 @@ namespace ModConstructions
                     GUILayout.Label($"Constructions Manager", LocalStylingManager.ColoredHeaderLabel(Color.yellow));
                     GUILayout.Label($"Constructions Options", LocalStylingManager.ColoredSubHeaderLabel(Color.yellow));
 
-                    InstantBuildOption = GUILayout.Toggle(InstantBuildOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
-                    DestroyTargetOption = GUILayout.Toggle(DestroyTargetOption, $"Use [{DeleteShortcutKey}] to destroy target?", GUI.skin.toggle);
+                    InstantBuildOptionBox();
+
+                    DestroyTargetOptionBox();
                 }
             }
             catch (Exception exc)
             {
                 HandleException(exc, nameof(ConstructionsManagerBox));
+            }
+        }
+
+        private void DestroyTargetOptionBox()
+        {
+            bool _destroyTargetOption = DestroyTargetOption;
+            DestroyTargetOption = GUILayout.Toggle(DestroyTargetOption, $"Use [{DeleteShortcutKey}] to destroy target?", GUI.skin.toggle);
+            if (_destroyTargetOption != DestroyTargetOption)
+            {
+                ShowHUDBigInfo(HUDBigInfoMessage($"Destroy target with [{DeleteShortcutKey}] has been {(DestroyTargetOption ? "enabled" : "disabled")} ", MessageType.Info, Color.green));
+            }
+        }
+
+        private void InstantBuildOptionBox()
+        {
+            bool _instantBuildOption = InstantBuildOption;
+            InstantBuildOption = GUILayout.Toggle(InstantBuildOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
+            if (_instantBuildOption != InstantBuildOption)
+            {
+                if (InstantBuildOption)
+                {
+                    InstantBuildEnabled = true;
+                }
+                else
+                {
+                    InstantBuildEnabled = false;
+                }
+                ShowHUDBigInfo(HUDBigInfoMessage($"Instant build using [F8] has been {(InstantBuildEnabled ? "enabled" : "disabled")} ", MessageType.Info, Color.green));
             }
         }
 
