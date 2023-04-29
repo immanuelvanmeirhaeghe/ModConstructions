@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using ModConstructions.Managers;
+using System.Linq;
 using UnityEngine;
 
 namespace ModConstructions.Extensions
@@ -8,7 +9,7 @@ namespace ModConstructions.Extensions
         protected override void Update()
         {
                 if ( (ModConstructions.Get().IsModActiveForSingleplayer || ModConstructions.Get().IsModActiveForMultiplayer)
-                    && ModConstructions.Get().InstantFinishConstructionsOption  && Input.GetKeyDown(KeyCode.F8))
+                    && ModConstructions.Get().InstantBuildOption  && Input.GetKeyDown(KeyCode.F8))
                 {
                     foreach (ConstructionGhost m_Unfinished in m_AllGhosts.Where(
                                               m_Ghost => m_Ghost.gameObject.activeSelf

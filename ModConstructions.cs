@@ -1,8 +1,8 @@
 ﻿using Enums;
 using ModConstructions.Data.Enums;
 using ModConstructions.Managers;
-using ModManager.Data.Interfaces;
-using ModManager.Data.Modding;
+using ModConstructions.Data.Interfaces;
+using ModConstructions.Data.Modding;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,22 +24,22 @@ namespace ModConstructions
         private static ModConstructions Instance;
         private static readonly string RuntimeConfiguration = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
         private static readonly string ModName = nameof(ModConstructions);
-        private static float ModScreenTotalWidth { get; set; } = 500f;
-        private static float ModScreenTotalHeight { get; set; } = 150f;
-        private static float ModScreenMinWidth { get; set; } = 450f;
-        private static float ModScreenMaxWidth { get; set; } = 550f;
-        private static float ModScreenMinHeight { get; set; } = 50f;
-        private static float ModScreenMaxHeight { get; set; } = 200f;
+        private static float ModConstructionsScreenTotalWidth { get; set; } = 500f;
+        private static float ModConstructionsScreenTotalHeight { get; set; } = 150f;
+        private static float ModConstructionsScreenMinWidth { get; set; } = 450f;
+        private static float ModConstructionsScreenMaxWidth { get; set; } = 550f;
+        private static float ModConstructionsScreenMinHeight { get; set; } = 50f;
+        private static float ModConstructionsScreenMaxHeight { get; set; } = 200f;
 
         private KeyCode ShortcutKey { get; set; } = KeyCode.Alpha8;
         private KeyCode DeleteShortcutKey { get; set; } = KeyCode.KeypadMinus;
         
-        private static float ModScreenStartPositionX { get; set; } = Screen.width / 3f;
-        private static float ModScreenStartPositionY { get; set; } = 0f;
-        private bool IsMinimized { get; set; } = false;
+        private static float ModConstructionsScreenStartPositionX { get; set; } = Screen.width / 3f;
+        private static float ModConstructionsScreenStartPositionY { get; set; } = 0f;
+        private bool IsModConstructionsMinimized { get; set; } = false;
 
-        public static Rect ModConstructionsScreen = new Rect(ModScreenStartPositionX, ModScreenStartPositionY, ModScreenTotalWidth, ModScreenTotalHeight);
-        private bool ShowUI = false;
+        public static Rect ModConstructionsScreen = new Rect(ModConstructionsScreenStartPositionX, ModConstructionsScreenStartPositionY, ModConstructionsScreenTotalWidth, ModConstructionsScreenTotalHeight);
+        private bool ShowModConstructionsScreen = false;
         private static ItemsManager LocalItemsManager;
         private static Player LocalPlayer;
         private static HUDManager LocalHUDManager;
@@ -61,7 +61,7 @@ namespace ModConstructions
             => $"{item} cannot be destroyed!";
        
         public static bool HasUnlockedConstructions { get; set; } = false;
-        public bool InstantFinishConstructionsOption { get; set; } = false;
+        public bool InstantBuildOption { get; set; } = false;
         public bool DestroyTargetOption { get; set; } = false;
         
         public ModConstructions()
@@ -79,8 +79,8 @@ namespace ModConstructions
         public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
 
         public IConfigurableMod SelectedMod { get; set; } = default;
-        public Vector2 ModInfoScrollViewPosition { get; set; } = default;
-        public bool ShowModInfo { get; set; } = false;
+        public Vector2 ModConstructionsInfoScrollViewPosition { get; set; } = default;
+        public bool ShowModConstructionsInfo { get; set; } = false;
 
         private string OnlyForSinglePlayerOrHostMessage()
                      => "Only available for single player or when host. Host can activate using ModManager.";
@@ -233,13 +233,13 @@ namespace ModConstructions
         {
             if (Input.GetKeyDown(ShortcutKey))
             {
-                if (!ShowUI)
+                if (!ShowModConstructionsScreen)
                 {
                     InitData();
                     EnableCursor(true);
                 }
                 ToggleShowUI(0);
-                if (!ShowUI)
+                if (!ShowModConstructionsScreen)
                 {
                     EnableCursor(false);
                 }
@@ -256,21 +256,21 @@ namespace ModConstructions
             switch (controlId)
             {
                 case 0:
-                    ShowUI = !ShowUI;
+                    ShowModConstructionsScreen = !ShowModConstructionsScreen;
                     return;
                 case 3:
-                    ShowModInfo = !ShowModInfo;
+                    ShowModConstructionsInfo = !ShowModConstructionsInfo;
                     return;          
                 default:                  
-                    ShowModInfo = !ShowModInfo;
-                    ShowUI = !ShowUI;
+                    ShowModConstructionsInfo = !ShowModConstructionsInfo;
+                    ShowModConstructionsScreen = !ShowModConstructionsScreen;
                     return;
             }
         }
 
         protected virtual void OnGUI()
         {
-            if (ShowUI)
+            if (ShowModConstructionsScreen)
             {
                 InitData();
                 InitSkinUI();
@@ -298,22 +298,22 @@ namespace ModConstructions
             string modScreenTitle = $"{ModName} created by [Dragon Legion] Immaanuel#4300";
             ModConstructionsScreen = GUILayout.Window(wid, ModConstructionsScreen, InitModConstructionsScreen, modScreenTitle, GUI.skin.window,
                                                                                                         GUILayout.ExpandWidth(true),
-                                                                                                        GUILayout.MinWidth(ModScreenMinWidth),
-                                                                                                        GUILayout.MaxWidth(ModScreenMaxWidth),
+                                                                                                        GUILayout.MinWidth(ModConstructionsScreenMinWidth),
+                                                                                                        GUILayout.MaxWidth(ModConstructionsScreenMaxWidth),
                                                                                                         GUILayout.ExpandHeight(true),
-                                                                                                        GUILayout.MinHeight(ModScreenMinHeight),
-                                                                                                        GUILayout.MaxHeight(ModScreenMaxHeight));
+                                                                                                        GUILayout.MinHeight(ModConstructionsScreenMinHeight),
+                                                                                                        GUILayout.MaxHeight(ModConstructionsScreenMaxHeight));
         }
 
         private void InitModConstructionsScreen(int windowID)
         {
-            ModScreenStartPositionX = ModConstructionsScreen.x;
-            ModScreenStartPositionY = ModConstructionsScreen.y;
+            ModConstructionsScreenStartPositionX = ModConstructionsScreen.x;
+            ModConstructionsScreenStartPositionY = ModConstructionsScreen.y;
 
             using (new GUILayout.VerticalScope(GUI.skin.box))
             {
                 ScreenMenuBox();
-                if (!IsMinimized)
+                if (!IsModConstructionsMinimized)
                 {
                     ModConstructionsManagerBox();
 
@@ -346,7 +346,7 @@ namespace ModConstructions
 
         private void ScreenMenuBox()
         {
-            string CollapseButtonText = IsMinimized ? "O" : "-";
+            string CollapseButtonText = IsModConstructionsMinimized ? "O" : "-";
             if (GUI.Button(new Rect(ModConstructionsScreen.width - 40f, 0f, 20f, 20f),CollapseButtonText, GUI.skin.button))
             {
                 CollapseWindow();
@@ -360,22 +360,22 @@ namespace ModConstructions
 
         private void CollapseWindow()
         {
-            if (!IsMinimized)
+            if (!IsModConstructionsMinimized)
             {
-                ModConstructionsScreen = new Rect(ModScreenStartPositionX, ModScreenStartPositionY, ModScreenTotalWidth, ModScreenMinHeight);
-                IsMinimized = true;
+                ModConstructionsScreen = new Rect(ModConstructionsScreenStartPositionX, ModConstructionsScreenStartPositionY, ModConstructionsScreenTotalWidth, ModConstructionsScreenMinHeight);
+                IsModConstructionsMinimized = true;
             }
             else
             {
-                ModConstructionsScreen = new Rect(ModScreenStartPositionX, ModScreenStartPositionY, ModScreenTotalWidth, ModScreenTotalHeight);
-                IsMinimized = false;
+                ModConstructionsScreen = new Rect(ModConstructionsScreenStartPositionX, ModConstructionsScreenStartPositionY, ModConstructionsScreenTotalWidth, ModConstructionsScreenTotalHeight);
+                IsModConstructionsMinimized = false;
             }
             InitWindow();
         }
 
         private void CloseWindow()
         {
-            ShowUI = false;
+            ShowModConstructionsScreen = false;
             EnableCursor(false);
         }
 
@@ -392,7 +392,7 @@ namespace ModConstructions
                     {
                         ToggleShowUI(3);
                     }
-                    if (ShowModInfo)
+                    if (ShowModConstructionsInfo)
                     {
                         ModInfoBox();
                     }
@@ -416,7 +416,7 @@ namespace ModConstructions
                     GUILayout.Label($"Constructions Manager", LocalStylingManager.ColoredHeaderLabel(Color.yellow));
                     GUILayout.Label($"Constructions Options", LocalStylingManager.ColoredSubHeaderLabel(Color.yellow));
 
-                    InstantFinishConstructionsOption = GUILayout.Toggle(InstantFinishConstructionsOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
+                    InstantBuildOption = GUILayout.Toggle(InstantBuildOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
                     DestroyTargetOption = GUILayout.Toggle(DestroyTargetOption, $"Use [{DeleteShortcutKey}] to destroy target?", GUI.skin.toggle);
                 }
             }
@@ -438,7 +438,7 @@ namespace ModConstructions
         {
             using (new GUILayout.VerticalScope(GUI.skin.box))
             {
-                ModInfoScrollViewPosition = GUILayout.BeginScrollView(ModInfoScrollViewPosition, GUI.skin.scrollView, GUILayout.MinHeight(150f));
+                ModConstructionsInfoScrollViewPosition = GUILayout.BeginScrollView(ModConstructionsInfoScrollViewPosition, GUI.skin.scrollView, GUILayout.MinHeight(150f));
 
                 GUILayout.Label("Mod Info", LocalStylingManager.ColoredSubHeaderLabel(Color.cyan));
 
