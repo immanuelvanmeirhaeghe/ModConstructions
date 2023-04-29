@@ -319,30 +319,10 @@ namespace ModConstructions
                     ModConstructionsManagerBox();
 
                     ConstructionsManagerBox();
-
-                    UnlockBlueprintsBox();
+                    
                 }
             }
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
-        }
-
-        private void UnlockBlueprintsBox()
-        {
-            if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
-            {
-                using (new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Click to unlock all constructions info: ", LocalStylingManager.FormFieldNameLabel);
-                    if (GUILayout.Button("Unlock blueprints", GUI.skin.button, GUILayout.Width(150f)))
-                    {
-                        OnClickUnlockBlueprintsButton();
-                    }
-                }
-            }
-            else
-            {
-                OnlyForSingleplayerOrWhenHostBox();
-            }
         }
 
         private void ScreenMenuBox()
@@ -395,11 +375,34 @@ namespace ModConstructions
                     }
                     if (ShowModConstructionsInfo)
                     {
-                        ModInfoBox();
+                        ModConstructionsInfoBox();
                     }
 
                     MultiplayerOptionBox();
-                    ModShortcutsInfoBox();                   
+
+                    ModShortcutsInfoBox();
+
+                    UnlockBlueprintsBox();
+
+                }
+            }
+            else
+            {
+                OnlyForSingleplayerOrWhenHostBox();
+            }
+        }
+
+        private void UnlockBlueprintsBox()
+        {
+            if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
+            {
+                using (new GUILayout.HorizontalScope(GUI.skin.box))
+                {
+                    GUILayout.Label("Click to unlock all constructions info: ", LocalStylingManager.FormFieldNameLabel);
+                    if (GUILayout.Button("Unlock blueprints", GUI.skin.button, GUILayout.Width(150f)))
+                    {
+                        OnClickUnlockBlueprintsButton();
+                    }
                 }
             }
             else
@@ -440,19 +443,10 @@ namespace ModConstructions
 
         private void InstantBuildOptionBox()
         {
-            bool _instantBuildOption = InstantBuildOption;
-            if (InstantBuildOption)
+            try
             {
-                InstantBuildEnabled = true;
-            }
-            else
-            {
-                InstantBuildEnabled = false;
-            }
-            InstantBuildOption = GUILayout.Toggle(InstantBuildOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
-            if (_instantBuildOption != InstantBuildOption)
-            {
-                if (InstantBuildOption)
+                bool _instantBuildOption = Cheats.m_InstantBuild;
+                if (Cheats.m_InstantBuild)
                 {
                     InstantBuildEnabled = true;
                 }
@@ -460,7 +454,25 @@ namespace ModConstructions
                 {
                     InstantBuildEnabled = false;
                 }
-                ShowHUDBigInfo(HUDBigInfoMessage($"Mod is {(IsModEnabled ? "enabled" : "disabled")} and Instant build using [F8] has been {(InstantBuildEnabled ? "enabled" : "disabled")} ", MessageType.Info, Color.green));
+
+                Cheats.m_InstantBuild = GUILayout.Toggle(Cheats.m_InstantBuild, $"Instantly build and finish any constructions?", GUI.skin.toggle);
+
+                if (_instantBuildOption != Cheats.m_InstantBuild)
+                {
+                    if (Cheats.m_InstantBuild)
+                    {
+                        InstantBuildEnabled = true;
+                    }
+                    else
+                    {
+                        InstantBuildEnabled = false;
+                    }
+                    ShowHUDBigInfo(HUDBigInfoMessage($"Mod is {(IsModEnabled ? "enabled" : "disabled")}\nInstant build has been {(InstantBuildEnabled ? "enabled" : "disabled")} ", MessageType.Info, Color.green));
+                }
+            }
+            catch (Exception exc)
+            {
+                HandleException(exc, nameof(InstantBuildOptionBox));
             }
         }
 
@@ -472,7 +484,7 @@ namespace ModConstructions
             }
         }
 
-        private void ModInfoBox()
+        private void ModConstructionsInfoBox()
         {
             using (new GUILayout.VerticalScope(GUI.skin.box))
             {
@@ -490,12 +502,12 @@ namespace ModConstructions
                     GUILayout.Label($"{nameof(IConfigurableMod.ID)}:", LocalStylingManager.FormFieldNameLabel);
                     GUILayout.Label($"{SelectedMod.ID}", LocalStylingManager.FormFieldValueLabel);
                 }
-                using (var uidScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                using (new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label($"{nameof(IConfigurableMod.UniqueID)}:", LocalStylingManager.FormFieldNameLabel);
                     GUILayout.Label($"{SelectedMod.UniqueID}", LocalStylingManager.FormFieldValueLabel);
                 }
-                using (var versionScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                using (new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label($"{nameof(IConfigurableMod.Version)}:", LocalStylingManager.FormFieldNameLabel);
                     GUILayout.Label($"{SelectedMod.Version}", LocalStylingManager.FormFieldValueLabel);
@@ -505,12 +517,12 @@ namespace ModConstructions
 
                 foreach (var configurableModButton in SelectedMod.ConfigurableModButtons)
                 {
-                    using (var btnidScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                    using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {
                         GUILayout.Label($"{nameof(IConfigurableModButton.ID)}:", LocalStylingManager.FormFieldNameLabel);
                         GUILayout.Label($"{configurableModButton.ID}", LocalStylingManager.FormFieldValueLabel);
                     }
-                    using (var btnbindScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                    using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {
                         GUILayout.Label($"{nameof(IConfigurableModButton.KeyBinding)}:", LocalStylingManager.FormFieldNameLabel);
                         GUILayout.Label($"{configurableModButton.KeyBinding}", LocalStylingManager.FormFieldValueLabel);
