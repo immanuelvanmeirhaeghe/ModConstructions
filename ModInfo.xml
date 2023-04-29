@@ -2,7 +2,7 @@
   <Compatible>2.4.2</Compatible>
   <Button Standard="D8" ID="ShortcutKey">
     <Name>
-      <EN>Press ShortcutKey</EN>
+      <EN>Press Shortcut key</EN>
     </Name>
     <Description>
       <EN>to open mod main screen.</EN>
@@ -10,7 +10,7 @@
   </Button>
   <Button Standard="Subtract" ID="DeleteShortcutKey">
     <Name>
-      <EN>Press ShortcutKey</EN>
+      <EN>Press Shortcut key</EN>
     </Name>
     <Description>
       <EN>to delete mouse target object.</EN>
