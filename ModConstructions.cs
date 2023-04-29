@@ -29,13 +29,14 @@ namespace ModConstructions
         private static float ModConstructionsScreenMinWidth { get; set; } = 700f;
         private static float ModConstructionsScreenMaxWidth { get; set; } = Screen.width;
         private static float ModConstructionsScreenMinHeight { get; set; } = 50f;
-        private static float ModConstructionsScreenMaxHeight { get; set; } = Screen.height;                
-        private static float ModConstructionsScreenStartPositionX { get; set; } = Screen.width / 3f;
+        private static float ModConstructionsScreenMaxHeight { get; set; } = Screen.height;
+        private static float ModConstructionsScreenStartPositionX { get; set; } = 0f;
         private static float ModConstructionsScreenStartPositionY { get; set; } = 0f;
         private bool IsModConstructionsMinimized { get; set; } = false;
+        private int ModConstructionsScreenId { get; set; } = 0;
         private KeyCode ShortcutKey { get; set; } = KeyCode.Alpha8;
         private KeyCode DeleteShortcutKey { get; set; } = KeyCode.KeypadMinus;
-        private bool ShowModConstructionsScreen = false;
+        private bool ShowModConstructionsScreen { get; set; } = false;
         private static Rect ModConstructionsScreen = new Rect(ModConstructionsScreenStartPositionX, ModConstructionsScreenStartPositionY, ModConstructionsScreenTotalWidth, ModConstructionsScreenTotalHeight);
        
         private static ItemsManager LocalItemsManager;
@@ -295,7 +296,10 @@ namespace ModConstructions
 
         private void ShowModConstructionsWindow()
         {
-            int ModConstructionsScreenId = ModConstructionsScreen.GetHashCode();
+            if (ModConstructionsScreenId <= 0)
+            {
+                ModConstructionsScreenId = ModConstructionsScreen.GetHashCode();
+            }          
             string ModConstructionsScreenTitle = $"{ModName} created by [Dragon Legion] Immaanuel#4300";
             ModConstructionsScreen = GUILayout.Window(ModConstructionsScreenId, ModConstructionsScreen, InitModConstructionsScreen, ModConstructionsScreenTitle, GUI.skin.window,
                                                                                                         GUILayout.ExpandWidth(true),
@@ -314,6 +318,7 @@ namespace ModConstructions
             using (new GUILayout.VerticalScope(GUI.skin.box))
             {
                 ScreenMenuBox();
+
                 if (!IsModConstructionsMinimized)
                 {
                     ModConstructionsManagerBox();
@@ -321,6 +326,7 @@ namespace ModConstructions
                     ConstructionsManagerBox();
                     
                 }
+
             }
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
         }
@@ -341,6 +347,9 @@ namespace ModConstructions
 
         private void CollapseWindow()
         {
+            ModConstructionsScreenStartPositionX = ModConstructionsScreen.x;
+            ModConstructionsScreenStartPositionY = ModConstructionsScreen.y;
+
             if (!IsModConstructionsMinimized)
             {
                 ModConstructionsScreen = new Rect(ModConstructionsScreenStartPositionX, ModConstructionsScreenStartPositionY, ModConstructionsScreenTotalWidth, ModConstructionsScreenMinHeight);
