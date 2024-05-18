@@ -24,21 +24,22 @@ namespace ModConstructions
         private static ModConstructions Instance;
         private static readonly string RuntimeConfiguration = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
         private static readonly string ModName = nameof(ModConstructions);
+        
         private static float ModConstructionsScreenTotalWidth { get; set; } = 700f;
         private static float ModConstructionsScreenTotalHeight { get; set; } = 150f;
         private static float ModConstructionsScreenMinWidth { get; set; } = 700f;
         private static float ModConstructionsScreenMaxWidth { get; set; } = Screen.width;
         private static float ModConstructionsScreenMinHeight { get; set; } = 50f;
         private static float ModConstructionsScreenMaxHeight { get; set; } = Screen.height;
-        private static float ModConstructionsScreenStartPositionX { get; set; } = 0f;
+        private static float ModConstructionsScreenStartPositionX { get; set; } = Screen.width / 5f;
         private static float ModConstructionsScreenStartPositionY { get; set; } = 0f;
         private bool IsModConstructionsMinimized { get; set; } = false;
-        private static int ModConstructionsScreenId { get; set; } = 0;
+        private static int ModConstructionsScreenId { get; set; }
+        private static Rect ModConstructionsScreen = new Rect(ModConstructionsScreenStartPositionX, ModConstructionsScreenStartPositionY, ModConstructionsScreenTotalWidth, ModConstructionsScreenTotalHeight);
         private KeyCode ShortcutKey { get; set; } = KeyCode.Alpha8;
         private KeyCode DeleteShortcutKey { get; set; } = KeyCode.KeypadMinus;
         private bool ShowModConstructionsScreen { get; set; } = false;
-        private static Rect ModConstructionsScreen = new Rect(ModConstructionsScreenStartPositionX, ModConstructionsScreenStartPositionY, ModConstructionsScreenTotalWidth, ModConstructionsScreenTotalHeight);
-       
+               
         private static ItemsManager LocalItemsManager;
         private static Player LocalPlayer;
         private static HUDManager LocalHUDManager;
@@ -62,18 +63,6 @@ namespace ModConstructions
         public bool HasUnlockedConstructions { get; set; } = false;
         public bool InstantBuildOption { get; set; } = false;
         public bool DestroyTargetOption { get; set; } = false;
-        
-        public ModConstructions()
-        {
-            useGUILayout = true;
-            Instance = this;
-        }
-
-        public static ModConstructions Get()
-        {
-            return Instance;
-        }
-
         public bool IsModActiveForMultiplayer { get; private set; } = false;
         public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
 
@@ -132,6 +121,17 @@ namespace ModConstructions
             ModManager.ModManager.onPermissionValueChanged += ModManager_onPermissionValueChanged;
             ShortcutKey = GetShortcutKey(nameof(ShortcutKey));
             DeleteShortcutKey = GetShortcutKey(nameof (DeleteShortcutKey));
+        }
+
+        public ModConstructions()
+        {
+            useGUILayout = true;
+            Instance = this;
+        }
+
+        public static ModConstructions Get()
+        {
+            return Instance;
         }
 
         private void EnableCursor(bool blockPlayer = false)
@@ -347,9 +347,6 @@ namespace ModConstructions
 
         private void CollapseWindow()
         {
-            ModConstructionsScreenStartPositionX = ModConstructionsScreen.x;
-            ModConstructionsScreenStartPositionY = ModConstructionsScreen.y;
-
             if (!IsModConstructionsMinimized)
             {
                 ModConstructionsScreen = new Rect(ModConstructionsScreenStartPositionX, ModConstructionsScreenStartPositionY, ModConstructionsScreenTotalWidth, ModConstructionsScreenMinHeight);
