@@ -28,13 +28,13 @@ namespace ModConstructions
         public string ModConstructionsScreenTitle = $"{ModName} created by [Dragon Legion] Immaanuel#4300";
 
         private static float ModConstructionsScreenTotalWidth { get; set; } = 700f;
-        private static float ModConstructionsScreenTotalHeight { get; set; } = 150f;
+        private static float ModConstructionsScreenTotalHeight { get; set; } = 500f;
         private static float ModConstructionsScreenMinWidth { get; set; } = 700f;
         private static float ModConstructionsScreenMaxWidth { get; set; } = Screen.width;
         private static float ModConstructionsScreenMinHeight { get; set; } = 50f;
         private static float ModConstructionsScreenMaxHeight { get; set; } = Screen.height;
-        private static float ModConstructionsScreenStartPositionX { get; set; } = Screen.width / 5f;
-        private static float ModConstructionsScreenStartPositionY { get; set; } = 0f;
+        private static float ModConstructionsScreenStartPositionX { get; set; } = Screen.width / 2f;
+        private static float ModConstructionsScreenStartPositionY { get; set; } = Screen.width / 2f;
         private bool IsModConstructionsScreenMinimized { get; set; } = false;
         private static int ModConstructionsScreenId { get; set; }
         private static Rect ModConstructionsScreen = new Rect(ModConstructionsScreenStartPositionX, ModConstructionsScreenStartPositionY, ModConstructionsScreenTotalWidth, ModConstructionsScreenTotalHeight);
@@ -132,8 +132,8 @@ namespace ModConstructions
         {
             ModManager.ModManager.onPermissionValueChanged += ModManager_onPermissionValueChanged;
             InitData();
-            ShortcutKey = GetConfigurableKey(nameof(ShortcutKey));
-            DeleteShortcutKey = GetConfigurableKey(nameof (DeleteShortcutKey));
+            ShortcutKey = GetShortcutKey(nameof(ShortcutKey));
+            DeleteShortcutKey = GetShortcutKey(nameof (DeleteShortcutKey));
         }
 
         public ModConstructions()
@@ -165,42 +165,67 @@ namespace ModConstructions
             }
         }
 
-        private KeyCode GetConfigurableKey(string buttonId)
+        public KeyCode GetShortcutKey(string buttonID)
         {
-            KeyCode configuredKeyCode = default;
-            string configuredKeybinding = string.Empty;
+            var ConfigurableModList = GetModList();
+            if (ConfigurableModList != null && ConfigurableModList.Count > 0)
+            {
+                SelectedMod = ConfigurableModList.Find(cfgMod => cfgMod.ID == ModName);
+                return SelectedMod.ConfigurableModButtons.Find(cfgButton => cfgButton.ID == buttonID).ShortcutKey;
+            }
+            else
+            {
+                return KeyCode.Keypad8;
+            }
+        }
 
+        private List<IConfigurableMod> GetModList()
+        {
+            List<IConfigurableMod> modList = new List<IConfigurableMod>();
             try
             {
                 if (File.Exists(RuntimeConfigurationFile))
                 {
-                    using (var xmlReader = XmlReader.Create(new StreamReader(RuntimeConfigurationFile)))
+                    using (XmlReader configFileReader = XmlReader.Create(new StreamReader(RuntimeConfigurationFile)))
                     {
-                        while (xmlReader.Read())
+                        while (configFileReader.Read())
                         {
-                            if (xmlReader["ID"] == ModName)
+                            configFileReader.ReadToFollowing("Mod");
+                            do
                             {
-                                if (xmlReader.ReadToFollowing(nameof(Button)) && xmlReader["ID"] == buttonId)
+                                string gameID = GameID.GreenHell.ToString();
+                                string modID = configFileReader.GetAttribute(nameof(IConfigurableMod.ID));
+                                string uniqueID = configFileReader.GetAttribute(nameof(IConfigurableMod.UniqueID));
+                                string version = configFileReader.GetAttribute(nameof(IConfigurableMod.Version));
+
+                                var configurableMod = new ConfigurableMod(gameID, modID, uniqueID, version);
+
+                                configFileReader.ReadToDescendant("Button");
+                                do
                                 {
-                                    configuredKeybinding = xmlReader.ReadElementContentAsString();
+                                    string buttonID = configFileReader.GetAttribute(nameof(IConfigurableModButton.ID));
+                                    string buttonKeyBinding = configFileReader.ReadElementContentAsString();
+
+                                    configurableMod.AddConfigurableModButton(buttonID, buttonKeyBinding);
+
+                                } while (configFileReader.ReadToNextSibling("Button"));
+
+                                if (!modList.Contains(configurableMod))
+                                {
+                                    modList.Add(configurableMod);
                                 }
-                            }
+
+                            } while (configFileReader.ReadToNextSibling("Mod"));
                         }
                     }
                 }
-
-                configuredKeybinding = configuredKeybinding?.Replace("NumPad", "Keypad").Replace("Oem", "");
-
-                configuredKeyCode = (KeyCode)(!string.IsNullOrEmpty(configuredKeybinding)
-                                                            ? Enum.Parse(typeof(KeyCode), configuredKeybinding)
-                                                            : GetType().GetProperty(buttonId)?.GetValue(this));
-                return configuredKeyCode;
+                return modList;
             }
             catch (Exception exc)
             {
-                HandleException(exc, nameof(GetConfigurableKey));
-                configuredKeyCode = (KeyCode)(GetType().GetProperty(buttonId)?.GetValue(this));
-                return configuredKeyCode;
+                HandleException(exc, nameof(GetModList));
+                modList = new List<IConfigurableMod>();
+                return modList;
             }
         }
 
