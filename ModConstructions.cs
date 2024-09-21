@@ -24,7 +24,9 @@ namespace ModConstructions
         private static ModConstructions Instance;
         private static readonly string RuntimeConfigurationFile = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
         private static readonly string ModName = nameof(ModConstructions);
-        
+
+        public string ModConstructionsScreenTitle = $"{ModName} created by [Dragon Legion] Immaanuel#4300";
+
         private static float ModConstructionsScreenTotalWidth { get; set; } = 700f;
         private static float ModConstructionsScreenTotalHeight { get; set; } = 150f;
         private static float ModConstructionsScreenMinWidth { get; set; } = 700f;
@@ -33,7 +35,7 @@ namespace ModConstructions
         private static float ModConstructionsScreenMaxHeight { get; set; } = Screen.height;
         private static float ModConstructionsScreenStartPositionX { get; set; } = Screen.width / 5f;
         private static float ModConstructionsScreenStartPositionY { get; set; } = 0f;
-        private bool IsModConstructionsMinimized { get; set; } = false;
+        private bool IsModConstructionsScreenMinimized { get; set; } = false;
         private static int ModConstructionsScreenId { get; set; }
         private static Rect ModConstructionsScreen = new Rect(ModConstructionsScreenStartPositionX, ModConstructionsScreenStartPositionY, ModConstructionsScreenTotalWidth, ModConstructionsScreenTotalHeight);
         private KeyCode ShortcutKey { get; set; } = KeyCode.Alpha8;
@@ -129,6 +131,7 @@ namespace ModConstructions
         protected virtual void Start()
         {
             ModManager.ModManager.onPermissionValueChanged += ModManager_onPermissionValueChanged;
+            InitData();
             ShortcutKey = GetConfigurableKey(nameof(ShortcutKey));
             DeleteShortcutKey = GetConfigurableKey(nameof (DeleteShortcutKey));
         }
@@ -273,27 +276,28 @@ namespace ModConstructions
 
         private void ShowModConstructionsWindow()
         {
-            ModConstructionsScreenId = GetHashCode();
-            string ModConstructionsScreenTitle = $"{ModName} created by [Dragon Legion] Immaanuel#4300";
-            ModConstructionsScreen = GUILayout.Window(ModConstructionsScreenId, ModConstructionsScreen, InitModConstructionsScreen, ModConstructionsScreenTitle, GUI.skin.window,
-                                                                                                        GUILayout.ExpandWidth(true),
-                                                                                                        GUILayout.MinWidth(ModConstructionsScreenMinWidth),
-                                                                                                        GUILayout.MaxWidth(ModConstructionsScreenMaxWidth),
-                                                                                                        GUILayout.ExpandHeight(true),
-                                                                                                        GUILayout.MinHeight(ModConstructionsScreenMinHeight),
-                                                                                                        GUILayout.MaxHeight(ModConstructionsScreenMaxHeight));
+            ModConstructionsScreenId = GetHashCode();            
+            ModConstructionsScreen = GUILayout.Window(ModConstructionsScreenId, ModConstructionsScreen,
+                                                      InitModConstructionsScreen, ModConstructionsScreenTitle,
+                                                      GUI.skin.window, GUILayout.ExpandWidth(true),
+                                                      GUILayout.MinWidth(ModConstructionsScreenMinWidth),
+                                                      GUILayout.MaxWidth(ModConstructionsScreenMaxWidth),
+                                                      GUILayout.ExpandHeight(true),
+                                                      GUILayout.MinHeight(ModConstructionsScreenMinHeight),
+                                                      GUILayout.MaxHeight(ModConstructionsScreenMaxHeight));
         }
 
         private void InitModConstructionsScreen(int windowID)
         {
             ModConstructionsScreenStartPositionX = ModConstructionsScreen.x;
             ModConstructionsScreenStartPositionY = ModConstructionsScreen.y;
+            ModConstructionsScreenTotalWidth = ModConstructionsScreen.width;
 
             using (new GUILayout.VerticalScope(GUI.skin.box))
             {
-                ScreenMenuBox();
+                ModConstructionsScreenMenuBox();
 
-                if (!IsModConstructionsMinimized)
+                if (!IsModConstructionsScreenMinimized)
                 {
                     ModConstructionsManagerBox();
 
@@ -305,12 +309,12 @@ namespace ModConstructions
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
         }
 
-        private void ScreenMenuBox()
+        private void ModConstructionsScreenMenuBox()
         {
-            string CollapseButtonText = IsModConstructionsMinimized ? "O" : "-";
+            string CollapseButtonText = IsModConstructionsScreenMinimized ? "O" : "-";
             if (GUI.Button(new Rect(ModConstructionsScreen.width - 40f, 0f, 20f, 20f),CollapseButtonText, GUI.skin.button))
             {
-                CollapseWindow();
+                CollapseModConstructionsWindow();
             }
 
             if (GUI.Button(new Rect(ModConstructionsScreen.width - 20f, 0f, 20f, 20f), "X", GUI.skin.button))
@@ -319,17 +323,17 @@ namespace ModConstructions
             }
         }
 
-        private void CollapseWindow()
+        private void CollapseModConstructionsWindow()
         {
-            if (!IsModConstructionsMinimized)
+            if (!IsModConstructionsScreenMinimized)
             {
-                ModConstructionsScreen = new Rect(ModConstructionsScreenStartPositionX, ModConstructionsScreenStartPositionY, ModConstructionsScreenTotalWidth, ModConstructionsScreenMinHeight);
-                IsModConstructionsMinimized = true;
+                ModConstructionsScreen = new Rect(ModConstructionsScreen.x, ModConstructionsScreen.y, ModConstructionsScreenTotalWidth, ModConstructionsScreenMinHeight);
+                IsModConstructionsScreenMinimized = true;
             }
             else
             {
-                ModConstructionsScreen = new Rect(ModConstructionsScreenStartPositionX, ModConstructionsScreenStartPositionY, ModConstructionsScreenTotalWidth, ModConstructionsScreenTotalHeight);
-                IsModConstructionsMinimized = false;
+                ModConstructionsScreen = new Rect(ModConstructionsScreen.x, ModConstructionsScreen.y, ModConstructionsScreenTotalWidth, ModConstructionsScreenTotalHeight);
+                IsModConstructionsScreenMinimized = false;
             }
             ShowModConstructionsWindow();
         }
