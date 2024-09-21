@@ -22,7 +22,7 @@ namespace ModConstructions
     public class ModConstructions : MonoBehaviour, IYesNoDialogOwner
     {
         private static ModConstructions Instance;
-        private static readonly string RuntimeConfiguration = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
+        private static readonly string RuntimeConfigurationFile = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
         private static readonly string ModName = nameof(ModConstructions);
         
         private static float ModConstructionsScreenTotalWidth { get; set; } = 700f;
@@ -70,7 +70,7 @@ namespace ModConstructions
         public Vector2 ModConstructionsInfoScrollViewPosition { get; set; } = default;
         public bool ShowModConstructionsInfo { get; set; } = false;
 
-        public static bool IsModConstructionsEnabled => Get().IsModActiveForSingleplayer || Get().IsModActiveForMultiplayer;
+        public static bool IsModEnabled => Get().IsModActiveForSingleplayer || Get().IsModActiveForMultiplayer;
         public static bool InstantBuildEnabled { get; set; } = false;
 
         private string OnlyForSinglePlayerOrHostMessage()
@@ -116,11 +116,21 @@ namespace ModConstructions
             messages.AddMessage($"{localization.Get(localizedTextKey)}  {localization.Get(itemID)}");
         }
 
+        protected virtual void Awake()
+        {
+            Instance = this;
+        }
+
+        protected virtual void OnDestroy()
+        {
+            Instance = null;
+        }
+
         protected virtual void Start()
         {
             ModManager.ModManager.onPermissionValueChanged += ModManager_onPermissionValueChanged;
-            ShortcutKey = GetShortcutKey(nameof(ShortcutKey));
-            DeleteShortcutKey = GetShortcutKey(nameof (DeleteShortcutKey));
+            ShortcutKey = GetConfigurableKey(nameof(ShortcutKey));
+            DeleteShortcutKey = GetConfigurableKey(nameof (DeleteShortcutKey));
         }
 
         public ModConstructions()
@@ -152,83 +162,50 @@ namespace ModConstructions
             }
         }
 
-        public KeyCode GetShortcutKey(string buttonID)
+        private KeyCode GetConfigurableKey(string buttonId)
         {
-            var ConfigurableModList = GetModList();
-            if (ConfigurableModList != null && ConfigurableModList.Count > 0)
-            {
-                SelectedMod = ConfigurableModList.Find(cfgMod => cfgMod.ID == ModName);
-                return SelectedMod.ConfigurableModButtons.Find(cfgButton => cfgButton.ID == buttonID).ShortcutKey;
-            }
-            else
-            {
-                switch (buttonID)
-                {
-                    case nameof(ShortcutKey):
-                        return KeyCode.Alpha0;
-                    case nameof(DeleteShortcutKey):
-                        return KeyCode.KeypadMinus;
-                    default:
-                        return KeyCode.None;
-                }
-            }
-        }
+            KeyCode configuredKeyCode = default;
+            string configuredKeybinding = string.Empty;
 
-        private List<IConfigurableMod> GetModList()
-        {
-            List<IConfigurableMod> modList = new List<IConfigurableMod>();
             try
             {
-                if (File.Exists(RuntimeConfiguration))
+                if (File.Exists(RuntimeConfigurationFile))
                 {
-                    using (XmlReader configFileReader = XmlReader.Create(new StreamReader(RuntimeConfiguration)))
+                    using (var xmlReader = XmlReader.Create(new StreamReader(RuntimeConfigurationFile)))
                     {
-                        while (configFileReader.Read())
+                        while (xmlReader.Read())
                         {
-                            configFileReader.ReadToFollowing("Mod");
-                            do
+                            if (xmlReader["ID"] == ModName)
                             {
-                                string gameID = GameID.GreenHell.ToString();
-                                string modID = configFileReader.GetAttribute(nameof(IConfigurableMod.ID));
-                                string uniqueID = configFileReader.GetAttribute(nameof(IConfigurableMod.UniqueID));
-                                string version = configFileReader.GetAttribute(nameof(IConfigurableMod.Version));
-
-                                var configurableMod = new ConfigurableMod(gameID, modID, uniqueID, version);
-
-                                configFileReader.ReadToDescendant("Button");
-                                do
+                                if (xmlReader.ReadToFollowing(nameof(Button)) && xmlReader["ID"] == buttonId)
                                 {
-                                    string buttonID = configFileReader.GetAttribute(nameof(IConfigurableModButton.ID));
-                                    string buttonKeyBinding = configFileReader.ReadElementContentAsString();
-
-                                    configurableMod.AddConfigurableModButton(buttonID, buttonKeyBinding);
-
-                                } while (configFileReader.ReadToNextSibling("Button"));
-
-                                if (!modList.Contains(configurableMod))
-                                {
-                                    modList.Add(configurableMod);
+                                    configuredKeybinding = xmlReader.ReadElementContentAsString();
                                 }
-
-                            } while (configFileReader.ReadToNextSibling("Mod"));
+                            }
                         }
                     }
                 }
-                return modList;
+
+                configuredKeybinding = configuredKeybinding?.Replace("NumPad", "Keypad").Replace("Oem", "");
+
+                configuredKeyCode = (KeyCode)(!string.IsNullOrEmpty(configuredKeybinding)
+                                                            ? Enum.Parse(typeof(KeyCode), configuredKeybinding)
+                                                            : GetType().GetProperty(buttonId)?.GetValue(this));
+                return configuredKeyCode;
             }
             catch (Exception exc)
             {
-                HandleException(exc, nameof(GetModList));
-                modList = new List<IConfigurableMod>();
-                return modList;
+                HandleException(exc, nameof(GetConfigurableKey));
+                configuredKeyCode = (KeyCode)(GetType().GetProperty(buttonId)?.GetValue(this));
+                return configuredKeyCode;
             }
         }
 
         private void HandleException(Exception exc, string methodName)
         {
-            string info = $"[{ModName}:{methodName}] throws exception -  {exc.TargetSite?.Name}:\n{exc.Message}\n{exc.InnerException}\n{exc.Source}\n{exc.StackTrace}";
+            string info = $"[{ModName}:{methodName}] throws exception:\n{exc}";
             ModAPI.Log.Write(info);
-            Debug.Log(info);
+            ShowHUDBigInfo(HUDBigInfoMessage(exc.Message, MessageType.Error, Color.red));
         }
 
         protected virtual void Update()
@@ -296,10 +273,7 @@ namespace ModConstructions
 
         private void ShowModConstructionsWindow()
         {
-            if (ModConstructionsScreenId <= 0)
-            {
-                ModConstructionsScreenId = ModConstructionsScreen.GetHashCode();
-            }          
+            ModConstructionsScreenId = GetHashCode();
             string ModConstructionsScreenTitle = $"{ModName} created by [Dragon Legion] Immaanuel#4300";
             ModConstructionsScreen = GUILayout.Window(ModConstructionsScreenId, ModConstructionsScreen, InitModConstructionsScreen, ModConstructionsScreenTitle, GUI.skin.window,
                                                                                                         GUILayout.ExpandWidth(true),
@@ -460,7 +434,6 @@ namespace ModConstructions
                 {
                     InstantBuildEnabled = false;
                 }
-
                 Cheats.m_InstantBuild = GUILayout.Toggle(Cheats.m_InstantBuild, $"Instantly build and finish any constructions?", GUI.skin.toggle);
 
                 if (_instantBuildOption != Cheats.m_InstantBuild)
@@ -473,7 +446,7 @@ namespace ModConstructions
                     {
                         InstantBuildEnabled = false;
                     }
-                    ShowHUDBigInfo(HUDBigInfoMessage($"Mod is {(IsModConstructionsEnabled ? "enabled" : "disabled")}\nInstant build has been {(InstantBuildEnabled ? "enabled" : "disabled")} ", MessageType.Info, Color.green));
+                    ShowHUDBigInfo(HUDBigInfoMessage($"Mod is {(IsModEnabled ? "enabled" : "disabled")}\nInstant build has been {(InstantBuildEnabled ? "enabled" : "disabled")} ", MessageType.Info, Color.green));
                 }
             }
             catch (Exception exc)

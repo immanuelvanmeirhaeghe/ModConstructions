@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectGuid>{53821041-E269-4717-BAED-3C9C6836E83F}</ProjectGuid>
+    <ProjectGuid>{62604C73-0E4C-476A-9127-615C3EE05E4C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ModConstructions</RootNamespace>
